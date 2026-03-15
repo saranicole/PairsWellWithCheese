@@ -68,10 +68,11 @@ function Collectible:GetCollectibles()
   local subparts = IFTTT.Split(self.selectedSubcategory.data, "-")
   for collectibleIndex = 1, tonumber(subparts[2]) do
     local id = GetCollectibleId(parts[1], subparts[1], collectibleIndex)
+    local category = GetCollectibleCategoryType(id)
     local name, description, iconFile, _, unlocked, _, purchasable, active = GetCollectibleInfo(id)
     if unlocked then
         table.insert(self.collectibles, {
-            data          = id.."-"..parts[1].."_"..subparts[1].."-collectible",
+            data          = id.."-"..parts[1].."_"..category.."_"..subparts[1].."-collectible",
             name        = name
         })
     end
@@ -89,18 +90,44 @@ function Collectible:RefreshCategories()
   end
 end
 
+function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
+  -- Switch on or off desired
+  if (toggleOn or activeCollectible == 0) and IsCollectibleUsable(desiredCollectibleId) and IsCollectibleValidForPlayer(desiredCollectibleId) then
+    UseCollectible(desiredCollectibleId)
+    -- Switch on case but did not succeed
+    zo_callLater(function()
+      if toggleOn and activeCollectible ~= 0 and not IsCollectibleActive(desiredCollectibleId) then
+        zo_callLater(function()
+          self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
+        end, 350)
+      end
+    end, 350)
+  end
+  -- Switch back to previous collectible
+  if not toggleOn and activeCollectible ~= 0 and not IsCollectibleActive(activeCollectible) and IsCollectibleUsable(activeCollectible) and IsCollectibleValidForPlayer(activeCollectible) then
+    UseCollectible(activeCollectible)
+    zo_callLater(function()
+      if not IsCollectibleActive(activeCollectible) then
+        zo_callLater(function()
+          self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
+        end, 350)
+      end
+    end, 350)
+  end
+end
+
 function Collectible:DoOutcome(outcome, toggleOn)
   for i = 1, #outcome do
     local outcomeparts = IFTTT.Split(outcome[i].data)
     local categoryparts = IFTTT.Split(outcomeparts[2], "_")
-    if toggleOn and not IsCollectibleActive(tonumber(outcomeparts[1]), GAMEPLAY_ACTOR_CATEGORY_PLAYER) and IsCollectibleUsable(outcomeparts[1]) then
-      self.snapshot[categoryparts[1]] = self.snapshot[categoryparts[1]] or {}
-      self.snapshot[categoryparts[1]] = GetActiveCollectibleByType(tonumber(categoryparts[1]), GAMEPLAY_ACTOR_CATEGORY_PLAYER)
-      UseCollectible(tonumber(outcomeparts[1]))
-    end
-    if not toggleOn and IsCollectibleActive(tonumber(outcomeparts[1]), GAMEPLAY_ACTOR_CATEGORY_PLAYER) and IsCollectibleUsable(outcomeparts[1]) then
-      local collectibleId = self.snapshot[categoryparts[1]] or outcomeparts[1]
-      UseCollectible(tonumber(collectibleId))
+    local desiredCollectibleId = tonumber(outcomeparts[1])
+    local categoryId = tonumber(categoryparts[2])
+    local backupCategoryId = tonumber(categoryparts[1])
+    if IsCollectibleCategoryUsable(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
+      if toggleOn then
+        self.snapshot[categoryId] = GetActiveCollectibleByType(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
+      end
+      self:PollUsable(self.snapshot[categoryId], desiredCollectibleId, toggleOn)
     end
   end
 end

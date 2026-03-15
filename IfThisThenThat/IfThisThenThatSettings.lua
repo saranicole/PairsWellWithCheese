@@ -33,8 +33,6 @@ function IFTTT:BuildMenu()
       end,
       setFunction = function(var, itemName, itemData)
         triggerItem.selected = {name=itemName, data=itemData.data}
-        d("triggerItem.selected")
-        d(triggerItem.selected)
       end,
       default = "",
     }
@@ -72,7 +70,6 @@ function IFTTT:BuildMenu()
         if type[3] == "category" then
           collectibleItem.selectedCategory.name = itemName
           collectibleItem.selectedCategory.data = itemData.data
-          d(collectibleItem.selectedCategory)
           IFTTT.Outcomes.items.Collectible:GetSubcategoryNames()
         elseif type[3] == "subcategory" then
           collectibleItem.selectedSubcategory.name = itemName
@@ -81,6 +78,7 @@ function IFTTT:BuildMenu()
         elseif type[3] == "collectible" then
           collectibleItem.selected.name = itemName
           collectibleItem.selected.data = itemData.data
+          d(collectibleItem.selected)
         end
         self.panel:UpdateControls()
       end,
@@ -111,6 +109,10 @@ function IFTTT:BuildMenu()
       clickHandler = function()
         local linkTrigger = { trigger = triggerItem.selected, outcome = collectibleItem.selected }
         table.insert(self.Links.savedVarsChar.links, linkTrigger)
+        triggerItem.selected = {}
+        collectibleItem.selectedCategory = {}
+        collectibleItem.selectedSubcategory = {}
+        collectibleItem.selected = {}
         self:AddCallbacks()
         self.panel:UpdateControls()
       end
@@ -123,6 +125,10 @@ function IFTTT:BuildMenu()
       clickHandler = function()
         local linkTrigger = { trigger = triggerItem.selected, outcome = collectibleItem.selected }
         table.insert(self.Links.savedVarsAcc.links, linkTrigger)
+        triggerItem.selected = {}
+        collectibleItem.selectedCategory = {}
+        collectibleItem.selectedSubcategory = {}
+        collectibleItem.selected = {}
         self:AddCallbacks()
         self.panel:UpdateControls()
       end
@@ -195,9 +201,9 @@ function IFTTT:BuildMenu()
     buttonText = IFTTT.Lang.CLEAR,
     tooltip = IFTTT.Lang.CLEAR_ALL,
     clickHandler = function()
+      self:RemoveCallbacks()
       self.Links.savedVarsChar.links = {}
       self.Links.savedVarsAcc.links = {}
-      self:RemoveCallbacks()
       self.panel:UpdateControls()
     end
   })
