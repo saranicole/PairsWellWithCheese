@@ -99,9 +99,9 @@ function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleO
       if toggleOn and activeCollectible ~= 0 and not IsCollectibleActive(desiredCollectibleId) then
         zo_callLater(function()
           self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
-        end, 350)
+        end, 1000)
       end
-    end, 350)
+    end, 1000)
   end
   -- Switch back to previous collectible
   if not toggleOn and activeCollectible ~= 0 and not IsCollectibleActive(activeCollectible) and IsCollectibleUsable(activeCollectible) and IsCollectibleValidForPlayer(activeCollectible) then
@@ -110,9 +110,9 @@ function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleO
       if not IsCollectibleActive(activeCollectible) then
         zo_callLater(function()
           self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
-        end, 350)
+        end, 1500)
       end
-    end, 350)
+    end, 1500)
   end
 end
 
@@ -125,7 +125,10 @@ function Collectible:DoOutcome(outcome, toggleOn)
     local backupCategoryId = tonumber(categoryparts[1])
     if IsCollectibleCategoryUsable(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
       if toggleOn then
-        self.snapshot[categoryId] = GetActiveCollectibleByType(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
+        local activeCollectible = GetActiveCollectibleByType(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
+        if activeCollectible ~= desiredCollectibleId then
+          self.snapshot[categoryId] = activeCollectible
+        end
       end
       self:PollUsable(self.snapshot[categoryId], desiredCollectibleId, toggleOn)
     end

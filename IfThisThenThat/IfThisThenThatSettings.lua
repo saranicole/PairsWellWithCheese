@@ -78,7 +78,6 @@ function IFTTT:BuildMenu()
         elseif type[3] == "collectible" then
           collectibleItem.selected.name = itemName
           collectibleItem.selected.data = itemData.data
-          d(collectibleItem.selected)
         end
         self.panel:UpdateControls()
       end,
@@ -187,11 +186,12 @@ function IFTTT:BuildMenu()
     clickHandler = function()
       local deleteParts = self.Split(self.deleteSelected.data)
       if deleteParts[1] == IFTTT.Lang.ACCOUNT then
-        self.Links.savedVarsAcc.links[deleteParts[2]] = nil
+        self.Links.savedVarsAcc.links[tonumber(deleteParts[2])] = nil
       end
       if deleteParts[1] == IFTTT.Lang.CHARACTER then
-        self.Links.savedVarsChar.links[deleteParts[2]] = nil
+        self.Links.savedVarsChar.links[tonumber(deleteParts[2])] = nil
       end
+      self.deleteSelected = {}
       self.panel:UpdateControls()
     end
   })
