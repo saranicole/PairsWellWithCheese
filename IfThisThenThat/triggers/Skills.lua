@@ -8,6 +8,9 @@ Skills.changes = {}
 Skills.selections = {}
 Skills.selected = {}
 Skills.activeLock = {}
+Skills.categoryLock = {}
+Skills.existingCooldown = 0
+Skills.timeRemaining = {}
 local EM = EVENT_MANAGER
 
 
@@ -37,14 +40,25 @@ function Skills:removeCallbacks(links)
 end
 
 function Skills:callbacks(links)
-  local function pollSkillFinished(slotNum, hotbarCategory, slotKey, key, obj, toggleOn, wait)
-    local timeRemaining = GetActionSlotEffectTimeRemaining(slotNum, hotbarCategory)
+  local function pollSkillFinished(slotNum, hotbarCategory, slotKey, key, obj, toggleOn, firstTriggerInSequence, wait)
+    local timeRemaining = 0
+    for k, active in pairs(Skills.timeRemaining) do
+      local triggerparts = IFTTT.Split(k)
+      if active then
+        local timeLeftSkill = GetActionSlotEffectTimeRemaining(tonumber(triggerparts[2]), tonumber(triggerparts[1]))
+        if timeLeftSkill == 0 then
+          Skills.timeRemaining[k] = false
+        end
+        timeRemaining = math.max(timeRemaining, timeLeftSkill)
+      end
+    end
     if timeRemaining <= 0 then
       Skills.activeLock[slotKey] = false
-      IFTTT.Outcomes.items[key]:DoOutcome(obj, toggleOn)
+      Skills.existingCooldown = 0
+      IFTTT.Outcomes.items[key]:DoOutcome(obj, toggleOn, firstTriggerInSequence)
     else
       zo_callLater(function()
-        pollSkillFinished(slotNum, hotbarCategory, slotKey, key, obj, toggleOn, timeRemaining)
+        pollSkillFinished(slotNum, hotbarCategory, slotKey, key, obj, toggleOn, firstTriggerInSequence, timeRemaining)
       end, timeRemaining)
     end
   end
@@ -56,24 +70,29 @@ function Skills:callbacks(links)
       callbackTable = {}
       local triggerparts = IFTTT.Split(link.trigger.data)
       local outcomeparts = IFTTT.Split(link.outcome.data)
+      local categoryparts = IFTTT.Split(outcomeparts[2], "_")
       local type = IFTTT.toCapitalized(outcomeparts[3])
       link.trigger.active = link.trigger.active or {}
       local slotNum = tonumber(triggerparts[2])
       local hotbarCategory = tonumber(triggerparts[1])
+      local outcomeCategory = tonumber(categoryparts[2])
       if actionSlotIndex == slotNum and GetActiveHotbarCategory() == hotbarCategory then
         local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
         callbackTable[type] = callbackTable[type] or {}
         table.insert(callbackTable[type], link.outcome)
         for k, obj in pairs(callbackTable) do
-          local cooldown
           zo_callLater(function()
             if not Skills.activeLock[slotKey] then
-              IFTTT.Outcomes.items[k]:DoOutcome(obj, true)
+              IFTTT.Outcomes.items[k]:DoOutcome(obj, true, Skills.categoryLock[outcomeCategory])
+              if not Skills.categoryLock[outcomeCategory] then
+                Skills.categoryLock[outcomeCategory] = true
+              end
               Skills.activeLock[slotKey] = true
-              cooldown = GetActionSlotEffectDuration(slotNum, hotbarCategory)
+              Skills.existingCooldown = Skills.existingCooldown + GetActionSlotEffectDuration(slotNum, hotbarCategory)
+              Skills.timeRemaining[slotKey] = true
               zo_callLater(function()
-                  pollSkillFinished(slotNum, hotbarCategory, slotKey, k, obj, false, 300)
-              end, cooldown)
+                  pollSkillFinished(slotNum, hotbarCategory, slotKey, k, obj, false, Skills.categoryLock[outcomeCategory], 300)
+              end, Skills.existingCooldown)
             end
           end, 500)
         end

@@ -116,7 +116,7 @@ function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleO
   end
 end
 
-function Collectible:DoOutcome(outcome, toggleOn)
+function Collectible:DoOutcome(outcome, toggleOn, categoryLock)
   for i = 1, #outcome do
     local outcomeparts = IFTTT.Split(outcome[i].data)
     local categoryparts = IFTTT.Split(outcomeparts[2], "_")
@@ -126,7 +126,7 @@ function Collectible:DoOutcome(outcome, toggleOn)
     if IsCollectibleCategoryUsable(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
       if toggleOn then
         local activeCollectible = GetActiveCollectibleByType(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
-        if activeCollectible ~= desiredCollectibleId then
+        if activeCollectible ~= desiredCollectibleId and not categoryLock then
           self.snapshot[categoryId] = activeCollectible
         end
       end
