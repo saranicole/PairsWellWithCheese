@@ -76,6 +76,9 @@ function Skills:callbacks(links)
       local slotNum = tonumber(triggerparts[2])
       local hotbarCategory = tonumber(triggerparts[1])
       local outcomeCategory = tonumber(categoryparts[2])
+      if not outcomeCategory or outcomeCategory == 0 then
+        outcomeCategory = tonumber(categoryparts[1])
+      end
       if actionSlotIndex == slotNum and GetActiveHotbarCategory() == hotbarCategory then
         local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
         callbackTable[type] = callbackTable[type] or {}
