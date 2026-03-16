@@ -6,162 +6,143 @@ if not LibHarvensAddonSettings then
     return
 end
 
-IFTTT.categorySelectStage = ""
-IFTTT.triggerCategorySelectStage = ""
-IFTTT.triggerMountCategorySelectStage = ""
-IFTTT.triggerSelectDisable = { 
-["TriggerCollectibles"] = { ["Skills"] = true, ["TriggerMounts"] = true },
-["Skills"] = { ["TriggerCollectibles"] = true, ["TriggerMounts"] = true }, 
-["TriggerMounts"] = { ["Skills"] = true, ["TriggerCollectibles"] = true },
-}
 IFTTT.triggerSelected = {}
+IFTTT.commitTrigger = {}
+IFTTT.outcomeSelected = {}
 IFTTT.deleteSelected = {}
+IFTTT.subcategorySettings = {}
+IFTTT.collectibleSettings = {}
+
+local function warnMessage(commitTrigger, commitEffect)
+  local problem = ""
+  if not next(commitTrigger) or not next(commitEffect) then
+    if not next(commitTrigger) then
+      problem = problem..IFTTT.Lang.TRIGGER
+    end
+    if not next(commitEffect) then
+      if not next(commitTrigger) then
+        problem = problem..IFTTT.Lang.AND.." "
+      end
+      problem =  IFTTT.Lang.EFFECT
+    end
+  end
+  return problem
+end
 
 function IFTTT:BuildMenu()
 
-  self.panel = LAM:AddAddon(self.Name, {
+  local panel = LAM:AddAddon(self.Name, {
     allowDefaults = false,  -- Show "Reset to Defaults" button
     allowRefresh = false    -- Enable automatic control updates
   })
 
-  self.panel:AddSetting {
+  panel:AddSetting {
     type = LAM.ST_SECTION,
     label = IFTTT.Lang.TRIGGER_HEADING
   }
+  panel:AddSetting {
+    type = LAM.ST_SECTION,
+    label = IFTTT.Lang.MOUNT_HEADING
+  }
   local triggerMountItem = IFTTT.Triggers.items.TriggerMounts
-    self.panel:AddSetting {
+    panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.MOUNT_HEADING,
       items = triggerMountItem.subcategories,
       getFunction = function() 
-        return triggerMountItem.selectedSubcategory.name or triggerMountItem.subcategories[1].name or ""
+        return triggerMountItem.selectedSubcategory.name or ""
       end,
       setFunction = function(var, itemName, itemData)
-        triggerMountItem.selectedSubcategory.name = itemName
-        triggerMountItem.selectedSubcategory.data = itemData.data
+        triggerMountItem.selectedSubcategory = { name = itemName, data = itemData.data }
         triggerMountItem:GetCollectibles()
-        self.panel:UpdateControls()
-      end,
-      default = triggerMountItem.selectedSubcategory.name or triggerMountItem.subcategories[1].name or "",
-      disable = function()
-        for k, item in pairs(IFTTT.triggerSelectDisable["TriggerMounts"]) do
-          if next(IFTTT.Triggers.items[k].selected) ~= nil then
-            return true
-          end
-        end
-        return false
+        self.collectibleSettings["TriggerMounts"]:UpdateControl()
       end,
     }
-    self.panel:AddSetting {
+    self.collectibleSettings["TriggerMounts"] = panel:AddSetting {
       type = LAM.ST_DROPDOWN,
-      label = IFTTT.Lang.MOUNT_HEADING,
+      label = IFTTT.Lang.COLLECTIBLE_HEADING,
       items = function()
-        local nodata = { name = GetString(SI_NOT_APPLICABLE), data = 0 }
-        if next(triggerMountItem.collectibles) then
-          return triggerMountItem.collectibles
-        else
-          return nodata
-        end
+        return triggerMountItem.collectibles
       end,
       getFunction = function() 
-        if next(triggerMountItem.collectibles) then
-          return triggerMountItem.collectibles[1].name
-        end
         if next(triggerMountItem.selected) then
           return triggerMountItem.selected.name
         end
-        return ""
+        if triggerMountItem.collectibles and next(triggerMountItem.collectibles) then
+          local index, first = next(select(1, triggerMountItem.collectibles))
+          return first.name
+        end
       end,
       setFunction = function(var, itemName, itemData)
         triggerMountItem.selected.name = itemName
         triggerMountItem.selected.data = itemData.data
         self.triggerSelected = triggerMountItem.selected
-        self.panel:UpdateControls()
       end,
---       disable = function()
---         for k, item in pairs(IFTTT.triggerSelectDisable["TriggerMounts"]) do
---           if next(IFTTT.Triggers.items[k].selected) ~= nil then
---             return true
---           end
---         end
---         return false
---       end,
     }
   local triggerCollectibleItem = IFTTT.Triggers.items.TriggerCollectibles
-    self.panel:AddSetting {
+  panel:AddSetting {
+    type = LAM.ST_SECTION,
+    label = IFTTT.Lang.TRIGGERCOLLECTIBLE_HEADING
+  }
+    panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.TRIGGERCOLLECTIBLE_HEADING,
-      items = function() 
-        if IFTTT.triggerCategorySelectStage == "" then
-          return triggerCollectibleItem.categories
-        elseif IFTTT.triggerCategorySelectStage == "category" then
-          return triggerCollectibleItem.subcategories
-        elseif IFTTT.triggerCategorySelectStage == "subcategory" then
-          return triggerCollectibleItem.collectibles
-        end
-        return triggerCollectibleItem.categories
-      end ,
+      items = triggerCollectibleItem.categories,
       getFunction = function() 
-        if IFTTT.triggerCategorySelectStage == "category" then
-          return triggerCollectibleItem.selectedCategory.name
-        elseif IFTTT.triggerCategorySelectStage == "subcategory" then
-          return triggerCollectibleItem.selectedSubcategory.name
-        elseif IFTTT.triggerCategorySelectStage == "triggerCollectibles" then
-          return triggerCollectibleItem.selected.name
-        end
-        return triggerCollectibleItem.categories[1].name or ""
+        return triggerCollectibleItem.selectedCategory.name or triggerCollectibleItem.categories[1].name or ""
       end,
       setFunction = function(var, itemName, itemData)
-        local type = IFTTT.Split(itemData.data, "-")
-        IFTTT.triggerCategorySelectStage = type[3]
-        if type[3] == "category" then
-          triggerCollectibleItem.selectedCategory.name = itemName
-          triggerCollectibleItem.selectedCategory.data = itemData.data
-          triggerCollectibleItem:GetSubcategoryNames()
-        elseif type[3] == "subcategory" then
-          triggerCollectibleItem.selectedSubcategory.name = itemName
-          triggerCollectibleItem.selectedSubcategory.data = itemData.data
-          triggerCollectibleItem:GetCollectibles()
-        elseif type[3] == "triggerCollectibles" then
-          triggerCollectibleItem.selected.name = itemName
-          triggerCollectibleItem.selected.data = itemData.data
-          self.triggerSelected = triggerCollectibleItem.selected
-        end
-        self.panel:UpdateControls()
-      end,
-      default = triggerCollectibleItem.categories[1].name or "",
-      disable = function()
-        for k, item in pairs(IFTTT.triggerSelectDisable["TriggerCollectibles"]) do
-          if next(IFTTT.Triggers.items[k].selected) ~= nil then
-            return true
-          end
-        end
-        return false
+        triggerCollectibleItem.selectedCategory = { name = itemName, data = itemData.data }
+        self.subcategorySettings["TriggerCollectibles"]:UpdateControl()
+        self.collectibleSettings["TriggerCollectibles"]:UpdateControl()
       end,
     }
-    self.panel:AddSetting({
-      type = LAM.ST_BUTTON,
-      label = IFTTT.Lang.BACK,
-      buttonText = IFTTT.Lang.BACK,
-      clickHandler = function()
-        if IFTTT.triggerCategorySelectStage == "category" then
-          IFTTT.triggerCategorySelectStage = ""
-        elseif IFTTT.triggerCategorySelectStage == "subcategory" then
-          IFTTT.triggerCategorySelectStage = "category"
-        elseif IFTTT.triggerCategorySelectStage == "collectible" then
-          IFTTT.triggerCategorySelectStage = "subcategory"
-          triggerCategorySelectStage.collectibles = {}
-          triggerCategorySelectStage.selected = {}
+    IFTTT.subcategorySettings["TriggerCollectibles"] = panel:AddSetting {
+      type = LAM.ST_DROPDOWN,
+      label = IFTTT.Lang.SUBCATEGORY,
+      items = function()
+        return triggerCollectibleItem:GetSubcategoryNames()
+      end,
+      getFunction = function() 
+        if triggerCollectibleItem.selectedSubcategory then
+          return triggerCollectibleItem.selectedSubcategory.name
         end
-        self.panel:UpdateControls()
-      end
-    })
+        return ""
+      end,
+      setFunction = function(var, itemName, itemData)
+        triggerCollectibleItem.selectedSubcategory = { name = itemName, data = itemData.data }
+        self.collectibleSettings["TriggerCollectibles"]:UpdateControl()
+      end,
+    }
+    self.collectibleSettings["TriggerCollectibles"] = panel:AddSetting {
+      type = LAM.ST_DROPDOWN,
+      label = IFTTT.Lang.COLLECTIBLE_HEADING,
+      items = function()
+        return triggerCollectibleItem:GetCollectibles()
+      end,
+      getFunction = function() 
+        if triggerCollectibleItem.collectibles and next(triggerCollectibleItem.collectibles) then
+          return triggerCollectibleItem.selected.name or triggerCollectibleItem.collectibles[1].name
+        end
+        return  ""
+      end,
+      setFunction = function(var, itemName, itemData)
+        triggerCollectibleItem.selected = { name = itemName, data = itemData.data }
+        self.triggerSelected = triggerCollectibleItem.selected
+      end,
+    }
   for k, triggerItem in pairs(IFTTT.Triggers.items) do
     if k ~= "TriggerCollectibles" and k ~= "TriggerMounts" then
-    self.panel:AddSetting {
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = IFTTT.Lang[string.upper(k).."_HEADING"]
+    }
+    panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang[string.upper(k).."_HEADING"],
-      items = triggerItem.available,
+      items = function()
+        return triggerItem.available
+      end,
       getFunction = function() 
         if next(triggerItem.selected) then
           return triggerItem.selected.name
@@ -171,161 +152,215 @@ function IFTTT:BuildMenu()
       setFunction = function(var, itemName, itemData)
         triggerItem.selected = {name=itemName, data=itemData.data}
         self.triggerSelected = triggerItem.selected
-        self.panel:UpdateControls()
       end,
       default = "",
-      disable = function()
-        for key, item in pairs(IFTTT.triggerSelectDisable[k]) do
-          if next(IFTTT.Triggers.items[key].selected) ~= nil then
-            return true
-          end
-        end
-        return false
-      end,
     }
-    self.panel:AddSetting({
-    type = LAM.ST_BUTTON,
-    label = IFTTT.Lang.RESET_TRIGGERS,
-    buttonText = IFTTT.Lang.RESET_TRIGGERS,
-    clickHandler = function()
-      for k, triggerItem in pairs(IFTTT.Triggers.items) do
-        IFTTT.Triggers.items[k].selected = {}
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = IFTTT.Lang.COMMIT
+    }
+    panel:AddSetting({
+      type = LAM.ST_BUTTON,
+      label = IFTTT.Lang.SELECT_TRIGGER,
+      buttonText = IFTTT.Lang.SELECT_TRIGGER,
+      clickHandler = function()
+        self.commitTrigger = self.triggerSelected
+        panel:UpdateControls()
       end
-      self.panel:UpdateControls()
-    end
-  })
-  self.panel:AddSetting {
+    })
+    panel:AddSetting({
+      type = LAM.ST_BUTTON,
+      label = IFTTT.Lang.CLEAR.." "..IFTTT.Lang.TRIGGER,
+      buttonText = IFTTT.Lang.CLEAR.." "..IFTTT.Lang.TRIGGER,
+      clickHandler = function()
+        self.commitTrigger = nil
+        panel:UpdateControls()
+      end
+    })
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = IFTTT.Lang.SELECTED_TRIGGER
+    }
+    panel:AddSetting {
+      type = LAM.ST_LABEL,
+      label = function()
+        if self.commitTrigger and next(self.commitTrigger) then
+          return "|cebc034"..self.commitTrigger.name.."|r"
+        end
+        return "" 
+      end
+    }
+  panel:AddSetting {
       type = LAM.ST_SECTION,
       label = IFTTT.Lang.EFFECT_HEADING
     }
     local collectibleItem = IFTTT.Outcomes.items.Collectible
-    self.panel:AddSetting {
+    panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
-      items = function() 
-        if IFTTT.categorySelectStage == "" then
-          return IFTTT.Outcomes.items.Collectible.categories
-        elseif IFTTT.categorySelectStage == "category" then
-          return IFTTT.Outcomes.items.Collectible.subcategories
-        elseif IFTTT.categorySelectStage == "subcategory" then
-          return IFTTT.Outcomes.items.Collectible.collectibles
-        end
-        return IFTTT.Outcomes.items.Collectible.categories
-      end ,
+      items = collectibleItem.categories,
       getFunction = function() 
-        if IFTTT.categorySelectStage == "category" then
-          return collectibleItem.selectedCategory.name
-        elseif IFTTT.categorySelectStage == "subcategory" then
-          return collectibleItem.selectedSubcategory.name
-        elseif IFTTT.categorySelectStage == "collectible" then
-          return collectibleItem.selected.name
-        end
-        return collectibleItem.categories[1].name or ""
+        return collectibleItem.selectedCategory.name or collectibleItem.categories[1].name or ""
       end,
       setFunction = function(var, itemName, itemData)
-        local type = IFTTT.Split(itemData.data, "-")
-        IFTTT.categorySelectStage = type[3]
-        if type[3] == "category" then
-          collectibleItem.selectedCategory.name = itemName
-          collectibleItem.selectedCategory.data = itemData.data
-          IFTTT.Outcomes.items.Collectible:GetSubcategoryNames()
-        elseif type[3] == "subcategory" then
-          collectibleItem.selectedSubcategory.name = itemName
-          collectibleItem.selectedSubcategory.data = itemData.data
-          IFTTT.Outcomes.items.Collectible:GetCollectibles()
-        elseif type[3] == "collectible" then
-          collectibleItem.selected.name = itemName
-          collectibleItem.selected.data = itemData.data
-        end
-        self.panel:UpdateControls()
+        collectibleItem.selectedCategory.name = itemName
+        collectibleItem.selectedCategory.data = itemData.data
+        collectibleItem:GetSubcategoryNames()
+        self.subcategorySettings["Collectibles"]:UpdateControl()
+        collectibleItem:GetCollectibles()
+        self.collectibleSettings["Collectibles"]:UpdateControl()
       end,
-      default = collectibleItem.categories[1].name or ""
     }
-    self.panel:AddSetting({
-      type = LAM.ST_BUTTON,
-      label = IFTTT.Lang.BACK,
-      buttonText = IFTTT.Lang.BACK,
-      clickHandler = function()
-        if IFTTT.categorySelectStage == "category" then
-          IFTTT.categorySelectStage = ""
-        elseif IFTTT.categorySelectStage == "subcategory" then
-          IFTTT.categorySelectStage = "category"
-        elseif IFTTT.categorySelectStage == "collectible" then
-          IFTTT.categorySelectStage = "subcategory"
-          collectibleItem.collectibles = {}
-          collectibleItem.selected = {}
+    IFTTT.subcategorySettings["Collectibles"] = panel:AddSetting {
+      type = LAM.ST_DROPDOWN,
+      label = IFTTT.Lang.COLLECTIBLE_HEADING,
+      items = function()
+        return collectibleItem.subcategories
+      end,
+      getFunction = function() 
+        if collectibleItem.selectedSubcategory then
+          return collectibleItem.selectedSubcategory.name
         end
-        self.panel:UpdateControls()
+        return ""
+      end,
+      setFunction = function(var, itemName, itemData)
+        collectibleItem.selectedSubcategory.name = itemName
+        collectibleItem.selectedSubcategory.data = itemData.data
+        collectibleItem:GetCollectibles()
+        self.collectibleSettings["Collectibles"]:UpdateControl()
+      end,
+    }
+    self.collectibleSettings["Collectibles"] = panel:AddSetting {
+      type = LAM.ST_DROPDOWN,
+      label = IFTTT.Lang.COLLECTIBLE_HEADING,
+      items = function()
+        local nodata = { name = IFTTT.Lang.NONE_AVAILABLE, data = 0 }
+        if collectibleItem.collectibles and next(collectibleItem.collectibles) then
+          return collectibleItem.collectibles
+        end
+        return nodata
+      end,
+      getFunction = function() 
+        if collectibleItem.collectibles and next(collectibleItem.collectibles) then
+          return collectibleItem.selected.name or collectibleItem.collectibles[1].name
+        end
+        return  ""
+      end,
+      setFunction = function(var, itemName, itemData)
+        collectibleItem.selected.name = itemName
+        collectibleItem.selected.data = itemData.data
+        self.outcomeSelected = collectibleItem.selected
+      end,
+    }
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = IFTTT.Lang.COMMIT
+    }
+    panel:AddSetting({
+      type = LAM.ST_BUTTON,
+      label = IFTTT.Lang.SELECT_EFFECT,
+      buttonText = "|cffffff"..IFTTT.Lang.SELECT_EFFECT.."|r",
+      clickHandler = function()
+        self.commitEffect = self.outcomeSelected
+        panel:UpdateControls()
       end
     })
-    self.panel:AddSetting({
+    panel:AddSetting({
+      type = LAM.ST_BUTTON,
+      label = IFTTT.Lang.CLEAR.." "..IFTTT.Lang.EFFECT,
+      buttonText = "|cffffff"..IFTTT.Lang.CLEAR.." "..IFTTT.Lang.EFFECT.."|r",
+      clickHandler = function()
+        self.commitEffect = nil
+        panel:UpdateControls()
+      end
+    })
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = IFTTT.Lang.SELECTED_EFFECT
+    }
+    panel:AddSetting {
+      type = LAM.ST_LABEL,
+      label = function()
+        if self.commitEffect and next(self.commitEffect) then
+          return "|cebc034"..self.commitEffect.name.."|r"
+        end
+        return "" 
+      end
+    }
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = ""
+    }
+    panel:AddSetting({
       type = LAM.ST_BUTTON,
       label = IFTTT.Lang.ADD_LINK,
       buttonText = IFTTT.Lang.ADD,
       tooltip = IFTTT.Lang.ADD_TOOLTIP,
       clickHandler = function()
-        local linkTrigger = { trigger = self.triggerSelected, outcome = collectibleItem.selected }
+        local warn = warnMessage(self.commitTrigger, self.commitEffect)
+        if warn ~= "" then
+          d(warn)
+          return
+        end
+        local linkTrigger = { trigger = self.commitTrigger, outcome = self.commitEffect }
         table.insert(self.Links.savedVarsChar.links, linkTrigger)
-        triggerItem.selected = {}
-        collectibleItem.selectedCategory = {}
-        collectibleItem.selectedSubcategory = {}
-        collectibleItem.selected = {}
         self:AddCallbacks()
-        self.panel:UpdateControls()
+        panel:UpdateControls()
       end
     })
-    self.panel:AddSetting({
+    panel:AddSetting({
       type = LAM.ST_BUTTON,
       label = IFTTT.Lang.ACC_ADD_LINK,
       buttonText = IFTTT.Lang.ACC_ADD,
       tooltip = IFTTT.Lang.ACC_ADD_TOOLTIP,
       clickHandler = function()
-        local linkTrigger = { trigger = self.triggerSelected, outcome = collectibleItem.selected }
+        local warn = warnMessage(self.commitTrigger, self.commitEffect)
+        if warn ~= "" then
+          d(warn)
+          return
+        end
+        local linkTrigger = { trigger = self.commitTrigger, outcome = self.commitEffect }
         table.insert(self.Links.savedVarsAcc.links, linkTrigger)
-        triggerItem.selected = {}
-        collectibleItem.selectedCategory = {}
-        collectibleItem.selectedSubcategory = {}
-        collectibleItem.selected = {}
         self:AddCallbacks()
-        self.panel:UpdateControls()
+        panel:UpdateControls()
       end
     })
   end
 end
-  self.panel:AddSetting {
+  panel:AddSetting {
     type = LAM.ST_SECTION,
     label = IFTTT.Lang.EXISTING_LINKS
   }
-  self.panel:AddSetting {
+  panel:AddSetting {
     type = LAM.ST_LABEL,
     label = function()
       local linkText = ""
       for key, linkItem in pairs(self.Links.savedVarsChar.links) do
-        linkText = linkText.."\n"..IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.." -> "..linkItem.outcome.name
+        linkText = linkText.."\n"..IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.."|r |cf2a705 → |r |c05f2a7"..linkItem.outcome.name
       end
-      return linkText
+      return "|c05f2a7"..linkText.."|r"
     end
   }
-  self.panel:AddSetting {
+  panel:AddSetting {
     type = LAM.ST_LABEL,
     label = function()
       local linkText = ""
       for key, linkItem in pairs(self.Links.savedVarsAcc.links) do
-        linkText = linkText.."\n"..IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.." -> "..linkItem.outcome.name
+        linkText = linkText.."\n"..IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.."|r |c05f2a7 → |r |cf29f05"..linkItem.outcome.name
       end
-      return linkText
+      return "|cf29f05"..linkText.."|r"
     end
   }
-  self.panel:AddSetting {
+  panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
       items = function() 
         local deleteItems = {}
         for key, linkItem in pairs(self.Links.savedVarsAcc.links) do
-          table.insert(deleteItems, { name = IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.." -> "..linkItem.outcome.name, data = IFTTT.Lang.ACCOUNT.."-"..key })
+          table.insert(deleteItems, { name = IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.ACCOUNT.."-"..key })
         end
         for key, linkItem in pairs(self.Links.savedVarsChar.links) do
-          table.insert(deleteItems, { name = IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.." -> "..linkItem.outcome.name, data = IFTTT.Lang.CHARACTER.."-"..key })
+          table.insert(deleteItems, { name = IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.CHARACTER.."-"..key })
         end
         return deleteItems
       end,
@@ -337,7 +372,7 @@ end
         self.deleteSelected.data = itemData.data
       end
   }
-  self.panel:AddSetting({
+  panel:AddSetting({
     type = LAM.ST_BUTTON,
     label = IFTTT.Lang.REMOVE_LINK,
     buttonText = IFTTT.Lang.REMOVE,
@@ -351,10 +386,10 @@ end
         self.Links.savedVarsChar.links[tonumber(deleteParts[2])] = nil
       end
       self.deleteSelected = {}
-      self.panel:UpdateControls()
+      panel:UpdateControls()
     end
   })
-  self.panel:AddSetting({
+  panel:AddSetting({
     type = LAM.ST_BUTTON,
     label = IFTTT.Lang.CLEAR_ALL,
     buttonText = IFTTT.Lang.CLEAR,
@@ -363,7 +398,8 @@ end
       self:RemoveCallbacks()
       self.Links.savedVarsChar.links = {}
       self.Links.savedVarsAcc.links = {}
-      self.panel:UpdateControls()
+      panel:UpdateControls()
     end
   })
+  self.panel = panel
 end

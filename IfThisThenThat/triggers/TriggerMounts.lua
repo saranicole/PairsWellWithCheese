@@ -8,8 +8,7 @@ TriggerMounts.collectibles = {}
 TriggerMounts.available = {}
 TriggerMounts.previous = {}
 TriggerMounts.changes = {}
-TriggerMounts.selectedCategory = {}
-TriggerMounts.selectedSubcategory = {}
+TriggerMounts.selectedSubcategory = nil
 TriggerMounts.selections = {}
 TriggerMounts.selected = {}
 TriggerMounts.activeLock = {}
@@ -24,12 +23,15 @@ local mountCategory = 11
 function TriggerMounts:GetSubcategoryNames()
     local categoryName, numSubcategories = GetCollectibleCategoryInfo(mountCategory)
     for subcategoryIndex = 1, numSubcategories do
-        local subcategoryName, numCollectibles = GetCollectibleSubCategoryInfo(mountCategory, subcategoryIndex)
-        table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(numCollectibles).."-subcategory"} )
+        local subcategoryName, numCollectibles, unlockedCollectibles = GetCollectibleSubCategoryInfo(mountCategory, subcategoryIndex)
+        if unlockedCollectibles > 0 then
+          table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(numCollectibles).."-subcategory"} )
+        end
     end
     table.sort(self.subcategories, function(a, b)
         return a.name:lower() < b.name:lower()
     end)
+    self.selectedSubcategory = self.subcategories[1]
     return self.subcategories
 end
 
@@ -56,7 +58,6 @@ end
 
 function TriggerMounts:Refresh()
   self.subcategories = self:GetSubcategoryNames()
-  self.selectedSubcategory = self.subcategories[1]
   self.collectibles = self:GetCollectibles()
 end
 
@@ -90,7 +91,7 @@ function TriggerMounts:callbacks(links)
             if not self.categoryLock[mountCategory] then
               self.categoryLock[mountCategory] = true
             end
-          end, 500)
+          end, 1000)
         end
       end
     end

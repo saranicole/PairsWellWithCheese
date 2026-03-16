@@ -8,8 +8,8 @@ TriggerCollectibles.collectibles = {}
 TriggerCollectibles.available = {}
 TriggerCollectibles.previous = {}
 TriggerCollectibles.changes = {}
-TriggerCollectibles.selectedCategory = {}
-TriggerCollectibles.selectedSubcategory = {}
+TriggerCollectibles.selectedCategory = nil
+TriggerCollectibles.selectedSubcategory = nil
 TriggerCollectibles.selections = {}
 TriggerCollectibles.selected = {}
 TriggerCollectibles.activeLock = {}
@@ -38,45 +38,57 @@ local nonUsableCategories = {
 
 function TriggerCollectibles:GetCategoryNames()
     for categoryIndex = 1, GetNumCollectibleCategories() do
-        local categoryName, numSubcategories = GetCollectibleCategoryInfo(categoryIndex)
-        if not nonUsableCategories[categoryIndex] then
-          table.insert(self.categories, {name=categoryName, data=tostring(categoryIndex).."-"..tostring(numSubcategories).."-category"} )
+        local categoryName, numSubcategories, numCollectibles, unlockedCollectibles, totalCollectibles = GetCollectibleCategoryInfo(categoryIndex)
+        if not nonUsableCategories[categoryIndex] and unlockedCollectibles > 0 then
+          table.insert(self.categories, {name=categoryName, data=tostring(categoryIndex).."-"..tostring(numSubcategories).."_"..tostring(totalCollectibles).."-category"} )
         end
     end
     table.sort(self.categories, function(a, b)
         return a.name:lower() < b.name:lower()
     end)
+    self.selectedCategory = self.categories[1]
     return self.categories
 end
 
 function TriggerCollectibles:GetSubcategoryNames()
-    if not self.selectedCategory.data then return end
     self.subcategories = {}
+    if not self.selectedCategory.data then return end
     local parts = IFTTT.Split(self.selectedCategory.data, "-")
-    for subcategoryIndex = 1, parts[2] do
-        local subcategoryName, numCollectibles = GetCollectibleSubCategoryInfo(parts[1], subcategoryIndex)
-        table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(numCollectibles).."-subcategory"} )
+    local partsCat = IFTTT.Split(parts[2], "_")
+    for subcategoryIndex = 1, tonumber(partsCat[1]) do
+        local subcategoryName, numCollectibles, unlockedCollectibles, totalCollectibles = GetCollectibleSubCategoryInfo(parts[1], subcategoryIndex)
+        if totalCollectibles > 0 and unlockedCollectibles > 0 then
+          table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(totalCollectibles).."-subcategory"} )
+        end
     end
     table.sort(self.subcategories, function(a, b)
         return a.name:lower() < b.name:lower()
     end)
+    self.selectedSubcategory = self.subcategories[1]
     return self.subcategories
 end
 
 function TriggerCollectibles:GetCollectibles()
-  if not self.selectedSubcategory.data then return end
   self.collectibles = {}
   local parts = IFTTT.Split(self.selectedCategory.data, "-")
-  local subparts = IFTTT.Split(self.selectedSubcategory.data, "-")
-  for collectibleIndex = 1, tonumber(subparts[2]) do
-    local id = GetCollectibleId(parts[1], subparts[1], collectibleIndex)
-    local category = GetCollectibleCategoryType(id)
-    local name, description, iconFile, _, unlocked, _, purchasable, active = GetCollectibleInfo(id)
+  local partsCat = IFTTT.Split(parts[2], "_")
+  local subcategoryIndex
+  local numCollectibles = tonumber(partsCat[2])
+  if self.selectedSubcategory and self.selectedSubcategory.data then
+    local subparts = IFTTT.Split(self.selectedSubcategory.data, "-")
+    subcategoryIndex = tonumber(subparts[1])
+    numCollectibles = tonumber(subparts[2])
+  end
+  for collectibleIndex = 1, numCollectibles do
+    local id = GetCollectibleId(tonumber(parts[1]), subcategoryIndex, collectibleIndex)
+
+    local name, description, iconFile, _, unlocked, _, purchasable, active, category = GetCollectibleInfo(id)
+
     if unlocked then
-        table.insert(self.collectibles, {
-            data          = id.."-"..parts[1].."_"..category.."_"..subparts[1].."-triggerCollectibles",
-            name        = name
-        })
+      table.insert(self.collectibles, {
+          data          = id.."-"..partsCat[1].."_"..category.."_"..tostring(subcategoryIndex).."-triggerCollectibles",
+          name        = name
+      })
     end
   end
   table.sort(self.collectibles, function(a, b)
@@ -87,9 +99,8 @@ end
 
 function TriggerCollectibles:Refresh()
   self.categories = self:GetCategoryNames()
-  if next(self.selectedCategory) then
-    self.subcategories = self:GetSubcategoryNames(self.selectedCategory)
-  end
+  self.subcategories = self:GetSubcategoryNames()
+  self.collectibles = self:GetCollectibles()
 end
 
 function TriggerCollectibles:removeCallbacks(links)

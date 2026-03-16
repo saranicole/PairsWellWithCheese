@@ -8,8 +8,8 @@ Collectible.collectibles = {}
 Collectible.available = {}
 Collectible.previous = {}
 Collectible.changes = {}
-Collectible.selectedCategory = {}
-Collectible.selectedSubcategory = {}
+Collectible.selectedCategory = nil
+Collectible.selectedSubcategory = nil
 Collectible.selected = {}
 Collectible.selections = {}
 Collectible.snapshot = {}
@@ -23,6 +23,7 @@ local nonUsableCategories = {
   [6] = true, -- Furnishings
   [7] = true, -- Fragments
   [10] = true, -- Tools
+  [11] = true, -- Mounts
   [13] = true, -- Customized Actions
   [15] = true, -- Armor Styles
   [16] = true, -- Weapon Styles
@@ -35,45 +36,57 @@ local nonUsableCategories = {
 
 function Collectible:GetCategoryNames()
     for categoryIndex = 1, GetNumCollectibleCategories() do
-        local categoryName, numSubcategories = GetCollectibleCategoryInfo(categoryIndex)
-        if not nonUsableCategories[categoryIndex] then
-          table.insert(self.categories, {name=categoryName, data=tostring(categoryIndex).."-"..tostring(numSubcategories).."-category"} )
+        local categoryName, numSubcategories, numCollectibles, unlockedCollectibles, totalCollectibles = GetCollectibleCategoryInfo(categoryIndex)
+        if not nonUsableCategories[categoryIndex] and unlockedCollectibles > 0 then
+          table.insert(self.categories, {name=categoryName, data=tostring(categoryIndex).."-"..tostring(numSubcategories).."_"..tostring(totalCollectibles).."-category"} )
         end
     end
     table.sort(self.categories, function(a, b)
         return a.name:lower() < b.name:lower()
     end)
+    self.selectedCategory = self.categories[1]
     return self.categories
 end
 
 function Collectible:GetSubcategoryNames()
-    if not self.selectedCategory.data then return end
+    if not self.selectedCategory then return end
     self.subcategories = {}
     local parts = IFTTT.Split(self.selectedCategory.data, "-")
-    for subcategoryIndex = 1, parts[2] do
-        local subcategoryName, numCollectibles = GetCollectibleSubCategoryInfo(parts[1], subcategoryIndex)
-        table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(numCollectibles).."-subcategory"} )
+    local partsCat = IFTTT.Split(parts[2], "_")
+    for subcategoryIndex = 1, tonumber(partsCat[1]) do
+        local subcategoryName, numCollectibles, unlockedCollectibles = GetCollectibleSubCategoryInfo(parts[1], subcategoryIndex)
+        if unlockedCollectibles > 0 then
+          table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(numCollectibles).."-subcategory"} )
+        end
     end
     table.sort(self.subcategories, function(a, b)
         return a.name:lower() < b.name:lower()
     end)
+    self.selectedSubcategory = self.subcategories[1]
     return self.subcategories
 end
 
 function Collectible:GetCollectibles()
-  if not self.selectedSubcategory.data then return end
   self.collectibles = {}
   local parts = IFTTT.Split(self.selectedCategory.data, "-")
-  local subparts = IFTTT.Split(self.selectedSubcategory.data, "-")
-  for collectibleIndex = 1, tonumber(subparts[2]) do
-    local id = GetCollectibleId(parts[1], subparts[1], collectibleIndex)
-    local category = GetCollectibleCategoryType(id)
-    local name, description, iconFile, _, unlocked, _, purchasable, active = GetCollectibleInfo(id)
+  local partsCat = IFTTT.Split(parts[2], "_")
+  local subcategoryIndex
+  local numCollectibles = tonumber(partsCat[2])
+  if self.selectedSubcategory and self.selectedSubcategory.data then
+    local subparts = IFTTT.Split(self.selectedSubcategory.data, "-")
+    subcategoryIndex = tonumber(subparts[1])
+    numCollectibles = tonumber(subparts[2])
+  end
+  for collectibleIndex = 1, numCollectibles do
+    local id = GetCollectibleId(tonumber(parts[1]), subcategoryIndex, collectibleIndex)
+
+    local name, description, iconFile, _, unlocked, _, purchasable, active, category = GetCollectibleInfo(id)
+
     if unlocked then
-        table.insert(self.collectibles, {
-            data          = id.."-"..parts[1].."_"..category.."_"..subparts[1].."-collectible",
-            name        = name
-        })
+      table.insert(self.collectibles, {
+          data          = id.."-"..partsCat[1].."_"..category.."_"..tostring(subcategoryIndex).."-collectible",
+          name        = name
+      })
     end
   end
   table.sort(self.collectibles, function(a, b)
@@ -84,9 +97,8 @@ end
 
 function Collectible:RefreshCategories()
   self.categories = self:GetCategoryNames()
-  if next(Collectible.selectedCategory) then
-    self.subcategories = self:GetSubcategoryNames(Collectible.selectedCategory)
-  end
+  self.subcategories = self:GetSubcategoryNames()
+  self.collectibles = self:GetCollectibles()
 end
 
 function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
@@ -121,15 +133,15 @@ function Collectible:DoOutcome(outcome, toggleOn, categoryLock)
     local categoryparts = IFTTT.Split(outcomeparts[2], "_")
     local desiredCollectibleId = tonumber(outcomeparts[1])
     local categoryId = tonumber(categoryparts[2])
-    local backupCategoryId = tonumber(categoryparts[1])
-    if IsCollectibleCategoryUsable(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER) then
-      if toggleOn then
-        local activeCollectible = GetActiveCollectibleByType(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
-        if activeCollectible ~= desiredCollectibleId and not categoryLock then
-          self.snapshot[categoryId] = activeCollectible
-        end
-      end
-      self:PollUsable(self.snapshot[categoryId], desiredCollectibleId, toggleOn)
+    if not categoryId or categoryId == 0 then
+      categoryId = tonumber(categoryparts[1])
     end
+    if toggleOn then
+      local activeCollectible = GetActiveCollectibleByType(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
+      if activeCollectible ~= desiredCollectibleId and not categoryLock then
+        self.snapshot[categoryId] = activeCollectible
+      end
+    end
+    self:PollUsable(self.snapshot[categoryId], desiredCollectibleId, toggleOn)
   end
 end
