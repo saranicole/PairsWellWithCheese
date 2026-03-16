@@ -11,4 +11,3 @@ Currently supported triggers:
 
 Currently supported effects:
 - Collectibles (ditto above!)
-- 
