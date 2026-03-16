@@ -6,9 +6,9 @@
 
 ## Title: IfThisThenThat
 ## Author: @Saranicole1980
-## Version: 1.0.0
+## Version: 0.0.1
 ## APIVersion: 101049 101050
-## AddOnVersion: 1
+## AddOnVersion: 001
 ## SavedVariables: IfThisThenThat_Vars
 ## DependsOn: LibHarvensAddonSettings>=20101
 
