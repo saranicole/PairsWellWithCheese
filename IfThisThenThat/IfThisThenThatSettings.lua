@@ -110,7 +110,11 @@ function IFTTT:BuildMenu()
     end,
     setFunction = function(setting, itemName, itemData)
       triggerCollectibleItem.selectedCategory = { name = itemName, data = itemData.data }
-      RefreshSetting(self.subcategorySettings["TriggerCollectibles"], setting.m_container:GetParent())
+      local control
+      if setting.m_container then
+        control = setting.m_container:GetParent()
+      end
+      RefreshSetting(self.subcategorySettings["TriggerCollectibles"], control)
       RefreshSetting(self.collectibleSettings["TriggerCollectibles"], self.subcategorySettings["TriggerCollectibles"].control)
     end,
   }
@@ -129,7 +133,11 @@ function IFTTT:BuildMenu()
       end,
       setFunction = function(setting, itemName, itemData)
         triggerCollectibleItem.selectedSubcategory = { name = itemName, data = itemData.data }
-        RefreshSetting(self.collectibleSettings["TriggerCollectibles"], setting.m_container:GetParent())
+        local control
+        if setting.m_container then
+          control = setting.m_container:GetParent()
+        end
+        RefreshSetting(self.collectibleSettings["TriggerCollectibles"], control)
       end,
     }
     self.collectibleSettings["TriggerCollectibles"] = panel:AddSetting {
@@ -223,7 +231,11 @@ function IFTTT:BuildMenu()
       end,
       setFunction = function(setting, itemName, itemData)
         collectibleItem.selectedCategory = { name = itemName, data = itemData.data }
-        RefreshSetting(self.subcategorySettings["Collectible"], setting.m_container:GetParent())
+        local control
+        if setting.m_container then
+          control = setting.m_container:GetParent()
+        end
+        RefreshSetting(self.subcategorySettings["Collectible"], control)
         RefreshSetting(self.collectibleSettings["Collectible"], self.subcategorySettings["Collectible"].control)
       end,
     })
@@ -242,7 +254,11 @@ function IFTTT:BuildMenu()
       end,
       setFunction = function(setting, itemName, itemData)
         collectibleItem.selectedSubcategory = { name = itemName, data = itemData.data }
-        RefreshSetting(self.collectibleSettings["Collectible"], setting.m_container:GetParent())
+        local control
+        if setting.m_container then
+          control = setting.m_container:GetParent()
+        end
+        RefreshSetting(self.collectibleSettings["Collectible"], control)
       end,
     }
     self.collectibleSettings["Collectible"] = panel:AddSetting {
