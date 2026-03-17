@@ -29,8 +29,22 @@ local function warnMessage(commitTrigger, commitEffect)
   return problem
 end
 
-function IFTTT:BuildMenu()
+local function RefreshSetting(setting, previousSibling)
+  if IsInGamepadPreferredMode() or IsConsoleUI() then
+    setting:UpdateControl()
+  else
+    setting:UpdateControl(previousSibling)
+  end
+end
 
+local function RefreshHeight(numlines)
+  if not (IsInGamepadPreferredMode() or IsConsoleUI()) then
+    LAM:SetContainerHeightPercentage(1 + (0.1 * numlines))
+  end
+end
+
+function IFTTT:BuildMenu()
+  
   local panel = LAM:AddAddon(self.Name, {
     allowDefaults = false,  -- Show "Reset to Defaults" button
     allowRefresh = false    -- Enable automatic control updates
@@ -44,20 +58,22 @@ function IFTTT:BuildMenu()
     type = LAM.ST_SECTION,
     label = IFTTT.Lang.MOUNT_HEADING
   }
+  
   local triggerMountItem = IFTTT.Triggers.items.TriggerMounts
-    panel:AddSetting {
-      type = LAM.ST_DROPDOWN,
-      label = IFTTT.Lang.MOUNT_HEADING,
-      items = triggerMountItem.subcategories,
-      getFunction = function() 
-        return triggerMountItem.selectedSubcategory.name or ""
-      end,
-      setFunction = function(var, itemName, itemData)
-        triggerMountItem.selectedSubcategory = { name = itemName, data = itemData.data }
-        triggerMountItem:GetCollectibles()
-        self.collectibleSettings["TriggerMounts"]:UpdateControl()
-      end,
-    }
+
+  panel:AddSetting {
+    type = LAM.ST_DROPDOWN,
+    label = IFTTT.Lang.MOUNT_HEADING,
+    items = triggerMountItem.subcategories,
+    getFunction = function() 
+      return triggerMountItem.selectedSubcategory.name or ""
+    end,
+    setFunction = function(control, itemName, itemData)
+      triggerMountItem.selectedSubcategory = { name = itemName, data = itemData.data }
+      triggerMountItem:GetCollectibles()
+      RefreshSetting(self.collectibleSettings["TriggerMounts"], control)
+    end,
+  }
     self.collectibleSettings["TriggerMounts"] = panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
@@ -84,19 +100,21 @@ function IFTTT:BuildMenu()
     type = LAM.ST_SECTION,
     label = IFTTT.Lang.TRIGGERCOLLECTIBLE_HEADING
   }
-    panel:AddSetting {
-      type = LAM.ST_DROPDOWN,
-      label = IFTTT.Lang.TRIGGERCOLLECTIBLE_HEADING,
-      items = triggerCollectibleItem.categories,
-      getFunction = function() 
-        return triggerCollectibleItem.selectedCategory.name or triggerCollectibleItem.categories[1].name or ""
-      end,
-      setFunction = function(var, itemName, itemData)
-        triggerCollectibleItem.selectedCategory = { name = itemName, data = itemData.data }
-        self.subcategorySettings["TriggerCollectibles"]:UpdateControl()
-        self.collectibleSettings["TriggerCollectibles"]:UpdateControl()
-      end,
-    }
+
+  panel:AddSetting {
+    type = LAM.ST_DROPDOWN,
+    label = IFTTT.Lang.TRIGGERCOLLECTIBLE_HEADING,
+    items = triggerCollectibleItem.categories,
+    getFunction = function() 
+      return triggerCollectibleItem.selectedCategory.name or triggerCollectibleItem.categories[1].name or ""
+    end,
+    setFunction = function(setting, itemName, itemData)
+      triggerCollectibleItem.selectedCategory = { name = itemName, data = itemData.data }
+      RefreshSetting(self.subcategorySettings["TriggerCollectibles"], setting.m_container:GetParent())
+      RefreshSetting(self.collectibleSettings["TriggerCollectibles"], self.subcategorySettings["TriggerCollectibles"].control)
+    end,
+  }
+
     IFTTT.subcategorySettings["TriggerCollectibles"] = panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.SUBCATEGORY,
@@ -109,9 +127,9 @@ function IFTTT:BuildMenu()
         end
         return ""
       end,
-      setFunction = function(var, itemName, itemData)
+      setFunction = function(setting, itemName, itemData)
         triggerCollectibleItem.selectedSubcategory = { name = itemName, data = itemData.data }
-        self.collectibleSettings["TriggerCollectibles"]:UpdateControl()
+        RefreshSetting(self.collectibleSettings["TriggerCollectibles"], setting.m_container:GetParent())
       end,
     }
     self.collectibleSettings["TriggerCollectibles"] = panel:AddSetting {
@@ -195,27 +213,26 @@ function IFTTT:BuildMenu()
       label = IFTTT.Lang.EFFECT_HEADING
     }
     local collectibleItem = IFTTT.Outcomes.items.Collectible
-    panel:AddSetting {
+
+    panel:AddSetting({
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
       items = collectibleItem.categories,
       getFunction = function() 
         return collectibleItem.selectedCategory.name or collectibleItem.categories[1].name or ""
       end,
-      setFunction = function(var, itemName, itemData)
-        collectibleItem.selectedCategory.name = itemName
-        collectibleItem.selectedCategory.data = itemData.data
-        collectibleItem:GetSubcategoryNames()
-        self.subcategorySettings["Collectibles"]:UpdateControl()
-        collectibleItem:GetCollectibles()
-        self.collectibleSettings["Collectibles"]:UpdateControl()
+      setFunction = function(setting, itemName, itemData)
+        collectibleItem.selectedCategory = { name = itemName, data = itemData.data }
+        RefreshSetting(self.subcategorySettings["Collectible"], setting.m_container:GetParent())
+        RefreshSetting(self.collectibleSettings["Collectible"], self.subcategorySettings["Collectible"].control)
       end,
-    }
-    IFTTT.subcategorySettings["Collectibles"] = panel:AddSetting {
+    })
+
+    self.subcategorySettings["Collectible"] = panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
       items = function()
-        return collectibleItem.subcategories
+        return collectibleItem:GetSubcategoryNames()
       end,
       getFunction = function() 
         if collectibleItem.selectedSubcategory then
@@ -223,22 +240,16 @@ function IFTTT:BuildMenu()
         end
         return ""
       end,
-      setFunction = function(var, itemName, itemData)
-        collectibleItem.selectedSubcategory.name = itemName
-        collectibleItem.selectedSubcategory.data = itemData.data
-        collectibleItem:GetCollectibles()
-        self.collectibleSettings["Collectibles"]:UpdateControl()
+      setFunction = function(setting, itemName, itemData)
+        collectibleItem.selectedSubcategory = { name = itemName, data = itemData.data }
+        RefreshSetting(self.collectibleSettings["Collectible"], setting.m_container:GetParent())
       end,
     }
-    self.collectibleSettings["Collectibles"] = panel:AddSetting {
+    self.collectibleSettings["Collectible"] = panel:AddSetting {
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
       items = function()
-        local nodata = { name = IFTTT.Lang.NONE_AVAILABLE, data = 0 }
-        if collectibleItem.collectibles and next(collectibleItem.collectibles) then
-          return collectibleItem.collectibles
-        end
-        return nodata
+        return collectibleItem:GetCollectibles()
       end,
       getFunction = function() 
         if collectibleItem.collectibles and next(collectibleItem.collectibles) then
@@ -327,31 +338,37 @@ function IFTTT:BuildMenu()
     })
   end
 end
-  panel:AddSetting {
+  panel:AddSetting({
     type = LAM.ST_SECTION,
     label = IFTTT.Lang.EXISTING_LINKS
-  }
-  panel:AddSetting {
+  })
+  panel:AddSetting({
     type = LAM.ST_LABEL,
     label = function()
       local linkText = ""
+      local linkCounter = 1
       for key, linkItem in pairs(self.Links.savedVarsChar.links) do
         linkText = linkText.."\n"..IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.."|r |cf2a705 → |r |c05f2a7"..linkItem.outcome.name
+        linkCounter = linkCounter + 1
       end
+      RefreshHeight(linkCounter)
       return "|c05f2a7"..linkText.."|r"
     end
-  }
-  panel:AddSetting {
+  })
+  panel:AddSetting({
     type = LAM.ST_LABEL,
     label = function()
       local linkText = ""
+      local linkCounter = 1
       for key, linkItem in pairs(self.Links.savedVarsAcc.links) do
         linkText = linkText.."\n"..IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.."|r |c05f2a7 → |r |cf29f05"..linkItem.outcome.name
+        linkCounter = linkCounter + 1
       end
+      RefreshHeight(linkCounter)
       return "|cf29f05"..linkText.."|r"
     end
-  }
-  panel:AddSetting {
+  })
+  panel:AddSetting({
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
       items = function() 
@@ -371,7 +388,7 @@ end
         self.deleteSelected.name = itemName
         self.deleteSelected.data = itemData.data
       end
-  }
+  })
   panel:AddSetting({
     type = LAM.ST_BUTTON,
     label = IFTTT.Lang.REMOVE_LINK,

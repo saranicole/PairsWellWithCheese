@@ -81,17 +81,3 @@ function IFTTT.isValueInTable(table, element)
   end
   return false
 end
-
-local function OnAddOnLoaded(eventCode, addonName)
-  if addonName ~= IFTTT.Name then return end
-	EVENT_MANAGER:UnregisterForEvent(IFTTT.Name, EVENT_ADD_ON_LOADED)
-	
-	local ns = GetDisplayName()..GetWorldName()
-	IFTTT.AV = ZO_SavedVars:NewAccountWide("IfThisThenThat_Vars", 1, ns, IFTTT.Default)
-  IFTTT.CV = ZO_SavedVars:NewCharacterIdSettings("IfThisThenThat_Vars", 1, ns, IFTTT.Default)
-end
-
-
-
-
-EM:RegisterForEvent(IFTTT.Name, EVENT_ADD_ON_LOADED, OnAddOnLoaded)
