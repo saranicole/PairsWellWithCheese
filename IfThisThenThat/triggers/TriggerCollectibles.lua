@@ -36,6 +36,12 @@ local nonUsableCategories = {
   [26] = true, -- Fragments
 }
 
+local nonUsableSubcategories = {
+  [13] = { -- Customized Actions
+    [3] = true, -- Recalling
+  },
+}
+
 function TriggerCollectibles:GetCategoryNames()
     for categoryIndex = 1, GetNumCollectibleCategories() do
         local categoryName, numSubcategories, numCollectibles, unlockedCollectibles, totalCollectibles = GetCollectibleCategoryInfo(categoryIndex)
@@ -57,7 +63,7 @@ function TriggerCollectibles:GetSubcategoryNames()
     local partsCat = IFTTT.Split(parts[2], "_")
     for subcategoryIndex = 1, tonumber(partsCat[1]) do
         local subcategoryName, numCollectibles, unlockedCollectibles, totalCollectibles = GetCollectibleSubCategoryInfo(parts[1], subcategoryIndex)
-        if totalCollectibles > 0 and unlockedCollectibles > 0 then
+        if totalCollectibles > 0 and unlockedCollectibles > 0 and not ( nonUsableSubcategories[tonumber(parts[1])] and nonUsableSubcategories[tonumber(parts[1])][subcategoryIndex] ) then
           table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(totalCollectibles).."-subcategory"} )
         end
     end
@@ -119,7 +125,7 @@ function TriggerCollectibles:callbacks(links)
       local type = IFTTT.toCapitalized(outcomeparts[3])
       link.trigger.active = link.trigger.active or {}
       if collectibleId == tonumber(desiredCollectibleId) then
-        local category = GetCollectibleCategoryType(collectibleId)
+        local category, subcategory =  GetCategoryInfoFromCollectibleId(collectibleId)
         local toggleOn = IsCollectibleActive(collectibleId)
         local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
         callbackTable[type] = callbackTable[type] or {}

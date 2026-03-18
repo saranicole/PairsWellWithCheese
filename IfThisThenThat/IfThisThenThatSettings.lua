@@ -13,6 +13,46 @@ IFTTT.deleteSelected = {}
 IFTTT.subcategorySettings = {}
 IFTTT.collectibleSettings = {}
 IFTTT.labelSettings = {}
+IFTTT.fastTravelModified = false
+IFTTT.deleteSetting = {}
+
+ZO_Dialogs_RegisterCustomDialog(
+        "RELOAD_UI_DIALOG",
+        {
+            gamepadInfo =
+            {
+                dialogType = GAMEPAD_DIALOGS.BASIC,
+            },
+            title =
+            {
+                text = IFTTT.Lang.FAST_TRAVEL_RELOAD,
+            },
+            mainText = {align=TEXT_ALIGN_LEFT, IFTTT.Lang.FAST_TRAVEL_BODY},
+            buttons = {
+              {
+                keybind = "DIALOG_PRIMARY",
+                text = SI_DIALOG_CONFIRM,
+                callback = function()
+                  ReloadUI()
+                end,
+              },
+              {
+                keybind = "DIALOG_NEGATIVE",
+                text = SI_DIALOG_CLOSE,
+                callback = function()
+                  ZO_Dialogs_ReleaseDialog("RELOAD_UI_DIALOG")
+                end,
+              }
+            }
+        })
+        
+local function ShowDialog()
+  if IsInGamepadPreferredMode() or IsConsoleUI() then
+    ZO_Dialogs_ShowGamepadDialog("RELOAD_UI_DIALOG")
+  else
+    ZO_Dialogs_ShowDialog("RELOAD_UI_DIALOG")
+  end
+end
 
 local function warnMessage(commitTrigger, commitEffect)
   local problem = ""
@@ -50,7 +90,6 @@ local function RefreshHeight(numlines)
 end
 
 function IFTTT:BuildMenu()
-  
   local panel = LAM:AddAddon(self.Name, {
     allowDefaults = false,  -- Show "Reset to Defaults" button
     allowRefresh = false    -- Enable automatic control updates
@@ -58,7 +97,7 @@ function IFTTT:BuildMenu()
 
   panel:AddSetting {
     type = LAM.ST_SECTION,
-    label = IFTTT.Lang.TRIGGER_HEADING
+    label = string.rep("·", 10).." "..IFTTT.Lang.TRIGGER_HEADING.." "..string.rep("·", 10)
   }
   panel:AddSetting {
     type = LAM.ST_SECTION,
@@ -189,6 +228,8 @@ function IFTTT:BuildMenu()
       end,
       default = "",
     }
+    end
+  end
     panel:AddSetting {
       type = LAM.ST_SECTION,
       label = IFTTT.Lang.COMMIT
@@ -199,6 +240,10 @@ function IFTTT:BuildMenu()
       buttonText = IFTTT.Lang.SELECT_TRIGGER,
       clickHandler = function(control)
         self.commitTrigger = self.triggerSelected
+        local dataParts = self.Split(self.triggerSelected.data)
+        if dataParts and dataParts[#dataParts] == "fastTravel" then
+          self.fastTravelModified = true
+        end
         panel:UpdateControls()
       end
     })
@@ -208,6 +253,7 @@ function IFTTT:BuildMenu()
       buttonText = IFTTT.Lang.CLEAR.." "..IFTTT.Lang.TRIGGER,
       clickHandler = function(control)
         self.commitTrigger = nil
+        IFTTT.fastTravelModified = false
         panel:UpdateControls()
       end
     })
@@ -226,7 +272,11 @@ function IFTTT:BuildMenu()
     }
   panel:AddSetting {
       type = LAM.ST_SECTION,
-      label = IFTTT.Lang.EFFECT_HEADING
+      label = string.rep("·", 10).." "..IFTTT.Lang.EFFECT_HEADING.." "..string.rep("·", 10)
+    }
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = ""
     }
     local collectibleItem = IFTTT.Outcomes.items.Collectible
 
@@ -345,6 +395,10 @@ function IFTTT:BuildMenu()
         self.outcomeSelected = nil
         self:AddCallbacks()
         panel:UpdateControls()
+        if self.fastTravelModified then
+          ShowDialog("RELOAD_UI_DIALOG")
+        end
+        self.fastTravelModified = false
       end
     })
     panel:AddSetting({
@@ -366,14 +420,20 @@ function IFTTT:BuildMenu()
         self.outcomeSelected = nil
         self:AddCallbacks()
         panel:UpdateControls()
+        if self.fastTravelModified then
+          ShowDialog("RELOAD_UI_DIALOG")
+        end
+        self.fastTravelModified = false
       end
     })
-  end
-end
   panel:AddSetting({
     type = LAM.ST_SECTION,
-    label = IFTTT.Lang.EXISTING_LINKS
+    label = string.rep("·", 10).." "..IFTTT.Lang.EXISTING_LINKS.." "..string.rep("·", 10)
   })
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = ""
+    }
   panel:AddSetting({
     type = LAM.ST_LABEL,
     label = function()
@@ -400,16 +460,16 @@ end
       return "|cf29f05"..linkText.."|r"
     end
   })
-  panel:AddSetting({
+  self.deleteSetting = panel:AddSetting({
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
       items = function() 
         local deleteItems = {}
         for key, linkItem in pairs(self.Links.savedVarsAcc.links) do
-          table.insert(deleteItems, { name = IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.ACCOUNT.."-"..key })
+          table.insert(deleteItems, { name = IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.ACCOUNT.."-"..key"-"..linkItem.trigger.data })
         end
         for key, linkItem in pairs(self.Links.savedVarsChar.links) do
-          table.insert(deleteItems, { name = IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.CHARACTER.."-"..key })
+          table.insert(deleteItems, { name = IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.CHARACTER.."-"..key.."-"..linkItem.trigger.data })
         end
         return deleteItems
       end,
@@ -419,7 +479,7 @@ end
       setFunction = function(var, itemName, itemData)
         self.deleteSelected.name = itemName
         self.deleteSelected.data = itemData.data
-      end
+      end,
   })
   panel:AddSetting({
     type = LAM.ST_BUTTON,
@@ -427,6 +487,9 @@ end
     buttonText = IFTTT.Lang.REMOVE,
     tooltip = IFTTT.Lang.REMOVE_LINK,
     clickHandler = function()
+      if not next(self.deleteSelected) then
+        self.deleteSelected = self.deleteSetting.items()[1]
+      end
       local deleteParts = self.Split(self.deleteSelected.data)
       if deleteParts[1] == IFTTT.Lang.ACCOUNT then
         self.Links.savedVarsAcc.links[tonumber(deleteParts[2])] = nil
@@ -436,6 +499,9 @@ end
       end
       self.deleteSelected = {}
       panel:UpdateControls()
+      if deleteParts and deleteParts[#deleteParts] == "fastTravel" then
+        ShowDialog("RELOAD_UI_DIALOG")
+      end
     end
   })
   panel:AddSetting({

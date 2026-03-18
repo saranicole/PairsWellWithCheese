@@ -8,6 +8,7 @@ IFTTT.Lang = {
   TRIGGERCOLLECTIBLE_HEADING = "Coleccionables Disparadores",
   MOUNT_HEADING  = "Corcel",
   SKILLS_HEADING = "Habilidades",
+  FASTTRAVEL_HEADING = "Viaje rápido",
   ADD_LINK       = "Agregar Enlace para Personaje",
   ADD            = "Agregar Personaje",
   ADD_TOOLTIP    = "Agregar un enlace específico para este personaje que activará el efecto de la acción",
@@ -34,4 +35,7 @@ IFTTT.Lang = {
   EFFECT         = "efecto",
   AND            = "y",
   COMMIT         = "Confirmar selección",
+  BASE_FAST_TRAVEL = "Viaje rápido básico",
+  FAST_TRAVEL_RELOAD = "Fast travel settings modified, reload required",
+  FAST_TRAVEL_BODY = "Reload is required when modifying fast travel settings",
 }

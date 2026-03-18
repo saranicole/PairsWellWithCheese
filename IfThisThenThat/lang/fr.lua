@@ -8,6 +8,7 @@ IFTTT.Lang = {
   TRIGGERCOLLECTIBLE_HEADING = "Objets de collection déclencheurs",
   MOUNT_HEADING  = "Coursier",
   SKILLS_HEADING = "Compétences",
+  FASTTRAVEL_HEADING = "Déplacement rapide",
   ADD_LINK       = "Ajouter un lien pour le personnage",
   ADD            = "Ajouter le personnage",
   ADD_TOOLTIP    = "Ajouter un lien spécifique à ce personnage qui déclenchera l'effet de l'action",
@@ -34,4 +35,7 @@ IFTTT.Lang = {
   EFFECT         = "effet",
   AND            = "et",
   COMMIT         = "Confirmer la sélection",
+  BASE_FAST_TRAVEL = "Déplacement rapide de base",
+  FAST_TRAVEL_RELOAD = "Fast travel settings modified, reload required",
+  FAST_TRAVEL_BODY = "Reload is required when modifying fast travel settings",
 }

@@ -5,6 +5,7 @@ Triggers.items = {
   Skills = {},
   TriggerCollectibles = {},
   TriggerMounts = {},
+  FastTravel = {},
 }
 
 function Triggers:Initialize(parent)

@@ -63,6 +63,11 @@ function IFTTT:RemoveCallbacks()
   end
 end
 
+local function OnPlayerActivated()
+  EM:UnregisterForEvent(IFTTT.Name.."PlayerActivated", EVENT_PLAYER_ACTIVATED)
+  IFTTT:RefreshTriggers()
+end
+
 local function OnAddOnLoaded(eventCode, addonName)
   if addonName ~= IFTTT.Name then return end
 	EVENT_MANAGER:UnregisterForEvent(IFTTT.Name, EVENT_ADD_ON_LOADED)
@@ -70,11 +75,10 @@ local function OnAddOnLoaded(eventCode, addonName)
 	local ns = GetDisplayName()..GetWorldName()
 	IFTTT.AV = ZO_SavedVars:NewAccountWide("IfThisThenThat_Vars", 1, ns, IFTTT.Default)
   IFTTT.CV = ZO_SavedVars:NewCharacterIdSettings("IfThisThenThat_Vars", 1, ns, IFTTT.Default)
-  
   IFTTT.Triggers:Initialize(IFTTT)
   IFTTT.Outcomes:Initialize(IFTTT)
   IFTTT.Links:Initialize(IFTTT)
-  IFTTT:RefreshTriggers()
+  EM:RegisterForEvent(IFTTT.Name.."PlayerActivated", EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
 end
 
 EM:RegisterForEvent(IFTTT.Name, EVENT_ADD_ON_LOADED, OnAddOnLoaded)

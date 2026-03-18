@@ -14,6 +14,9 @@
 
 IfThisThenThatGlobals.lua
 
+lang/en.lua
+lang/$(language).lua
+
 ## Outcomes
 outcomes/Outcomes.lua
 outcomes/Collectible.lua
@@ -23,9 +26,8 @@ triggers/Triggers.lua
 triggers/Skills.lua
 triggers/TriggerCollectibles.lua
 triggers/TriggerMounts.lua
+triggers/FastTravel.lua
 
 Links.lua
 IfThisThenThat.lua
 IfThisThenThatSettings.lua
-lang/en.lua
-lang/$(language).lua
