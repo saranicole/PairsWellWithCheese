@@ -30,11 +30,16 @@ local function warnMessage(commitTrigger, commitEffect)
   return problem
 end
 
-local function RefreshSetting(setting, previousSibling)
+local function RefreshSetting(setting, previousSibling, triggerOrEffect)
   if IsInGamepadPreferredMode() or IsConsoleUI() then
     setting:UpdateControl()
   else
     setting:UpdateControl(previousSibling)
+  end
+  if triggerOrEffect == "effect" then
+    IFTTT.outcomeSelected = setting.items()[1]
+  elseif triggerOrEffect == "trigger" then
+    IFTTT.triggerSelected = setting.items()[1]
   end
 end
 
@@ -72,7 +77,7 @@ function IFTTT:BuildMenu()
     setFunction = function(control, itemName, itemData)
       triggerMountItem.selectedSubcategory = { name = itemName, data = itemData.data }
       triggerMountItem:GetCollectibles()
-      RefreshSetting(self.collectibleSettings["TriggerMounts"], control)
+      RefreshSetting(self.collectibleSettings["TriggerMounts"], control, "trigger")
     end,
   }
     self.collectibleSettings["TriggerMounts"] = panel:AddSetting {
@@ -116,7 +121,7 @@ function IFTTT:BuildMenu()
         control = setting.m_container:GetParent()
       end
       RefreshSetting(self.subcategorySettings["TriggerCollectibles"], control)
-      RefreshSetting(self.collectibleSettings["TriggerCollectibles"], self.subcategorySettings["TriggerCollectibles"].control)
+      RefreshSetting(self.collectibleSettings["TriggerCollectibles"], self.subcategorySettings["TriggerCollectibles"].control, "trigger")
     end,
   }
 
@@ -138,7 +143,7 @@ function IFTTT:BuildMenu()
         if setting.m_container then
           control = setting.m_container:GetParent()
         end
-        RefreshSetting(self.collectibleSettings["TriggerCollectibles"], control)
+        RefreshSetting(self.collectibleSettings["TriggerCollectibles"], control, "trigger")
       end,
     }
     self.collectibleSettings["TriggerCollectibles"] = panel:AddSetting {
@@ -239,7 +244,7 @@ function IFTTT:BuildMenu()
           control = setting.m_container:GetParent()
         end
         RefreshSetting(self.subcategorySettings["Collectible"], control)
-        RefreshSetting(self.collectibleSettings["Collectible"], self.subcategorySettings["Collectible"].control)
+        RefreshSetting(self.collectibleSettings["Collectible"], self.subcategorySettings["Collectible"].control, "effect")
       end,
     })
 
@@ -261,7 +266,7 @@ function IFTTT:BuildMenu()
         if setting.m_container then
           control = setting.m_container:GetParent()
         end
-        RefreshSetting(self.collectibleSettings["Collectible"], control)
+        RefreshSetting(self.collectibleSettings["Collectible"], control, "effect")
       end,
     }
     self.collectibleSettings["Collectible"] = panel:AddSetting {

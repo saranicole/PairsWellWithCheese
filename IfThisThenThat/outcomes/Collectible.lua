@@ -111,6 +111,11 @@ function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleO
         zo_callLater(function()
           self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
         end, 1000)
+      -- Trying to toggle off desired collectible
+      elseif not toggleOn and activeCollectible == 0 and IsCollectibleActive(desiredCollectibleId) then
+        zo_callLater(function()
+          self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
+        end, 1000)
       end
     end, 1000)
   end
