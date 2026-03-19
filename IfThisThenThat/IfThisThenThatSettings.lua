@@ -14,11 +14,16 @@ IFTTT.subcategorySettings = {}
 IFTTT.collectibleSettings = {}
 IFTTT.labelSettings = {}
 IFTTT.fastTravelModified = false
-IFTTT.deleteSetting = {
-  items = function()
-    return {}
-  end,
-}
+IFTTT.deleteFunc = function() 
+  local deleteItems = {}
+  for key, linkItem in pairs(IFTTT.Links.savedVarsAcc.links) do
+    table.insert(deleteItems, { name = IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.ACCOUNT.."-"..key"-"..linkItem.trigger.data })
+  end
+  for key, linkItem in pairs(IFTTT.Links.savedVarsChar.links) do
+    table.insert(deleteItems, { name = IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.CHARACTER.."-"..key.."-"..linkItem.trigger.data })
+  end
+  return deleteItems
+end
 
 ZO_Dialogs_RegisterCustomDialog(
         "RELOAD_UI_DIALOG",
@@ -464,19 +469,10 @@ function IFTTT:BuildMenu()
       return "|cf29f05"..linkText.."|r"
     end
   })
-  self.deleteSetting = panel:AddSetting({
+  panel:AddSetting({
       type = LAM.ST_DROPDOWN,
       label = IFTTT.Lang.COLLECTIBLE_HEADING,
-      items = function() 
-        local deleteItems = {}
-        for key, linkItem in pairs(self.Links.savedVarsAcc.links) do
-          table.insert(deleteItems, { name = IFTTT.Lang.ACCOUNT.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.ACCOUNT.."-"..key"-"..linkItem.trigger.data })
-        end
-        for key, linkItem in pairs(self.Links.savedVarsChar.links) do
-          table.insert(deleteItems, { name = IFTTT.Lang.CHARACTER.."   "..key.."   "..linkItem.trigger.name.." → "..linkItem.outcome.name, data = IFTTT.Lang.CHARACTER.."-"..key.."-"..linkItem.trigger.data })
-        end
-        return deleteItems
-      end,
+      items = self.deleteFunc,
       getFunction = function() 
         return self.deleteSelected.name or ""
       end,
@@ -491,8 +487,8 @@ function IFTTT:BuildMenu()
     buttonText = IFTTT.Lang.REMOVE,
     tooltip = IFTTT.Lang.REMOVE_LINK,
     clickHandler = function()
-      if not next(self.deleteSelected) and type(self.deleteSetting.items) == "function" then
-        self.deleteSelected = self.deleteSetting.items()[1]
+      if not next(self.deleteSelected) then
+        self.deleteSelected = self.deleteFunc()[1]
       end
       local deleteParts = self.Split(self.deleteSelected.data)
       if deleteParts[1] == IFTTT.Lang.ACCOUNT then
