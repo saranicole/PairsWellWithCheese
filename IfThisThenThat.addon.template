@@ -29,6 +29,7 @@ triggers/TriggerCollectibles.lua
 triggers/TriggerMounts.lua
 triggers/FastTravel.lua
 triggers/Swimming.lua
+triggers/Combat.lua
 
 Links.lua
 IfThisThenThat.lua
