@@ -14,7 +14,11 @@ IFTTT.subcategorySettings = {}
 IFTTT.collectibleSettings = {}
 IFTTT.labelSettings = {}
 IFTTT.fastTravelModified = false
-IFTTT.deleteSetting = {}
+IFTTT.deleteSetting = {
+  items = function()
+    return {}
+  end,
+}
 
 ZO_Dialogs_RegisterCustomDialog(
         "RELOAD_UI_DIALOG",
@@ -487,7 +491,7 @@ function IFTTT:BuildMenu()
     buttonText = IFTTT.Lang.REMOVE,
     tooltip = IFTTT.Lang.REMOVE_LINK,
     clickHandler = function()
-      if not next(self.deleteSelected) then
+      if not next(self.deleteSelected) and type(self.deleteSetting.items) == "function" then
         self.deleteSelected = self.deleteSetting.items()[1]
       end
       local deleteParts = self.Split(self.deleteSelected.data)

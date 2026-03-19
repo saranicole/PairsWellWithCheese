@@ -130,6 +130,7 @@ function FastTravel:callbacks(links)
           zo_callLater(function()
             origSelf:PostJump(links)
           end, 14000)
+          return false
       end)
   end
 end
