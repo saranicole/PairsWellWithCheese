@@ -9,6 +9,8 @@ IFTTT.Lang = {
   MOUNT_HEADING  = "Corcel",
   SKILLS_HEADING = "Habilidades",
   FASTTRAVEL_HEADING = "Viaje rápido",
+  SWIMMING_HEADING = "Swimming",
+  COMBAT_HEADING = "Combat",
   ADD_LINK       = "Agregar Enlace para Personaje",
   ADD            = "Agregar Personaje",
   ADD_TOOLTIP    = "Agregar un enlace específico para este personaje que activará el efecto de la acción",
@@ -39,4 +41,8 @@ IFTTT.Lang = {
   FAST_TRAVEL_RELOAD = "Configuración de viaje rápido modificada, se requiere recarga",
   FAST_TRAVEL_BODY = "Se requiere una recarga al modificar la configuración de viaje rápido",
   SWIMMING       = "Natación",
+  COMBAT         = "Combat",
+  ANY_COMBAT     = "Combat - any enemy",
+  ANY_BOSS_COMBAT = "Combat - any boss",
+--   PVP_COMBAT     = "Combat - player vs player",
 }

@@ -9,6 +9,8 @@ IFTTT.Lang = {
   MOUNT_HEADING  = "Coursier",
   SKILLS_HEADING = "Compétences",
   FASTTRAVEL_HEADING = "Déplacement rapide",
+  SWIMMING_HEADING = "Swimming",
+  COMBAT_HEADING = "Combat",
   ADD_LINK       = "Ajouter un lien pour le personnage",
   ADD            = "Ajouter le personnage",
   ADD_TOOLTIP    = "Ajouter un lien spécifique à ce personnage qui déclenchera l'effet de l'action",
@@ -39,4 +41,8 @@ IFTTT.Lang = {
   FAST_TRAVEL_RELOAD = "Paramètres de voyage rapide modifiés, rechargement requis",
   FAST_TRAVEL_BODY = "Un rechargement est requis lors de la modification des paramètres de voyage rapide",
   SWIMMING       = "Natation",
+  COMBAT         = "Combat",
+  ANY_COMBAT     = "Combat - any enemy",
+  ANY_BOSS_COMBAT = "Combat - any boss",
+--   PVP_COMBAT     = "Combat - player vs player",
 }

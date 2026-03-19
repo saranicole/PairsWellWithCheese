@@ -1,5 +1,6 @@
 ## 2026.03.19
 - Add trigger Swimming
+- Add trigger Combat - mostly working
 
 ## 2026.03.18
 - Added trigger Fast Travel

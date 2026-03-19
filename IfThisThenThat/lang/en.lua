@@ -10,6 +10,7 @@ IFTTT.Lang = {
   SKILLS_HEADING = "Skills",
   FASTTRAVEL_HEADING = "Fast Travel",
   SWIMMING_HEADING = "Swimming",
+  COMBAT_HEADING = "Combat",
   ADD_LINK       = "Add Link for Character",
   ADD            = "Character Add",
   ADD_TOOLTIP    = "Add a link specific to this character that will trigger the effect from the action",
@@ -40,4 +41,8 @@ IFTTT.Lang = {
   FAST_TRAVEL_RELOAD = "Fast travel settings modified, reload required",
   FAST_TRAVEL_BODY = "Reload is required when modifying fast travel settings",
   SWIMMING       = "Swimming",
+  COMBAT         = "Combat",
+  ANY_COMBAT     = "Combat - any enemy",
+  ANY_BOSS_COMBAT = "Combat - any boss",
+--   PVP_COMBAT     = "Combat - player vs player",
 }
