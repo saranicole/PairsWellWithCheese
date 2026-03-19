@@ -9,6 +9,7 @@ IFTTT.Lang = {
   MOUNT_HEADING  = "Mounts",
   SKILLS_HEADING = "Skills",
   FASTTRAVEL_HEADING = "Fast Travel",
+  SWIMMING_HEADING = "Swimming",
   ADD_LINK       = "Add Link for Character",
   ADD            = "Character Add",
   ADD_TOOLTIP    = "Add a link specific to this character that will trigger the effect from the action",
@@ -38,4 +39,5 @@ IFTTT.Lang = {
   BASE_FAST_TRAVEL = "Base fast travel",
   FAST_TRAVEL_RELOAD = "Fast travel settings modified, reload required",
   FAST_TRAVEL_BODY = "Reload is required when modifying fast travel settings",
+  SWIMMING       = "Swimming",
 }

@@ -36,6 +36,7 @@ IFTTT.Lang = {
   AND            = "y",
   COMMIT         = "Confirmar selección",
   BASE_FAST_TRAVEL = "Viaje rápido básico",
-  FAST_TRAVEL_RELOAD = "Fast travel settings modified, reload required",
-  FAST_TRAVEL_BODY = "Reload is required when modifying fast travel settings",
+  FAST_TRAVEL_RELOAD = "Configuración de viaje rápido modificada, se requiere recarga",
+  FAST_TRAVEL_BODY = "Se requiere una recarga al modificar la configuración de viaje rápido",
+  SWIMMING       = "Natación",
 }
