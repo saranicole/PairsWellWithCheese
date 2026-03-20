@@ -43,26 +43,23 @@ function Pvp:removeCallbacks()
   EM:UnregisterForEvent(IFTTT.Name.."PvpCallback",  EVENT_DUEL_COUNTDOWN)
 end
 
-function Pvp:Hook(links, incombat)
+function Pvp:Hook(link, incombat)
   local callbackTable = {}
-  for key, link in pairs(links) do
-    callbackTable = {}
-    local triggerparts = IFTTT.Split(link.trigger.data)
-    local outcomeparts = IFTTT.Split(link.outcome.data)
-    local desiredPvpLevel = tonumber(IFTTT.Split(triggerparts[2], "_")[1])
-    local desiredCollectibleId = tonumber(triggerparts[1])
-    local type = IFTTT.toCapitalized(outcomeparts[3])
-    link.trigger.active = link.trigger.active or {}
-    if desiredCollectibleId == 0 or (IsCollectibleActive(desiredCollectibleId) and GetCollectibleCooldownAndDuration(desiredCollectibleId) == 0) then
-      local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
-      self.snapshot = desiredCollectibleId
-      callbackTable[type] = callbackTable[type] or {}
-      table.insert(callbackTable[type], link.outcome)
-      for k, obj in pairs(callbackTable) do
-        IFTTT.Outcomes.items[k]:DoOutcome(obj, incombat, self.categoryLock[lockKey])
-        if not self.categoryLock[lockKey] then
-          self.categoryLock[lockKey] = true
-        end
+  local triggerparts = IFTTT.Split(link.trigger.data)
+  local outcomeparts = IFTTT.Split(link.outcome.data)
+  local desiredPvpLevel = tonumber(IFTTT.Split(triggerparts[2], "_")[1])
+  local desiredCollectibleId = tonumber(triggerparts[1])
+  local type = IFTTT.toCapitalized(outcomeparts[3])
+  link.trigger.active = link.trigger.active or {}
+  if desiredCollectibleId == 0 or (IsCollectibleActive(desiredCollectibleId) and GetCollectibleCooldownAndDuration(desiredCollectibleId) == 0) then
+    local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
+    self.snapshot = desiredCollectibleId
+    callbackTable[type] = callbackTable[type] or {}
+    table.insert(callbackTable[type], link.outcome)
+    for k, obj in pairs(callbackTable) do
+      IFTTT.Outcomes.items[k]:DoOutcome(obj, incombat, self.categoryLock[lockKey])
+      if not self.categoryLock[lockKey] then
+        self.categoryLock[lockKey] = true
       end
     end
   end
@@ -80,21 +77,33 @@ function Pvp:callbacks(links)
   EM:UnregisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_COUNTDOWN)
   EM:UnregisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_PLAYER_ACTIVATED)
   EM:RegisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_COUNTDOWN, function()
-    origSelf:Hook(links, true)
-      EM:RegisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_FINISHED, function()
-          origSelf:Hook(links, false)
-          EM:UnregisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_FINISHED)
-      end)
+    for key, link in pairs(links) do
+      local triggerparts = IFTTT.Split(link.trigger.data)
+      local desiredPvpLevel = tonumber(IFTTT.Split(triggerparts[2], "_")[1])
+      if desiredPvpLevel == 1 then
+        origSelf:Hook(link, true)
+        EM:RegisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_FINISHED, function()
+            origSelf:Hook(link, false)
+            EM:UnregisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_FINISHED)
+        end)
+      end
+    end
   end)
   -- Pvp Zone
   EM:RegisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_PLAYER_ACTIVATED, function()
-    if (IsInCampaign() or IsActiveWorldBattleground()) and not origSelf.leavingPvpZone then
-      origSelf.leavingPvpZone = true
-      origSelf:Hook(links, true)
-    end
-    if origSelf.leavingPvpZone and not (IsInCampaign() or IsActiveWorldBattleground()) then
-      origSelf.leavingPvpZone = false
-      origSelf:Hook(links, false)
+    for key, link in pairs(links) do
+      local triggerparts = IFTTT.Split(link.trigger.data)
+      local desiredPvpLevel = tonumber(IFTTT.Split(triggerparts[2], "_")[1])
+      if desiredPvpLevel == 0 then
+        if (IsInCampaign() or IsActiveWorldBattleground()) and not origSelf.leavingPvpZone then
+          origSelf.leavingPvpZone = true
+          origSelf:Hook(link, true)
+        end
+        if origSelf.leavingPvpZone and not (IsInCampaign() or IsActiveWorldBattleground()) then
+          origSelf.leavingPvpZone = false
+          origSelf:Hook(link, false)
+        end
+      end
     end
   end)
 end
