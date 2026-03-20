@@ -71,14 +71,14 @@ end
 function Pvp:removeCallbacks(links)
   EM:UnregisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_COUNTDOWN)
   EM:UnregisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_FINISHED)
-  EM:UnregisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_ZONE_CHANGED)
+  EM:UnregisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_PLAYER_ACTIVATED)
 end
 
 function Pvp:callbacks(links)
   local origSelf = self
   -- Dueling
   EM:UnregisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_COUNTDOWN)
-  EM:UnregisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_ZONE_CHANGED)
+  EM:UnregisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_PLAYER_ACTIVATED)
   EM:RegisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_COUNTDOWN, function()
     origSelf:Hook(links, true)
       EM:RegisterForEvent(IFTTT.Name.."PvpDuelCallback", EVENT_DUEL_FINISHED, function()
@@ -87,7 +87,7 @@ function Pvp:callbacks(links)
       end)
   end)
   -- Pvp Zone
-  EM:RegisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_ZONE_CHANGED, function()
+  EM:RegisterForEvent(IFTTT.Name.."PvpZoneCallback", EVENT_PLAYER_ACTIVATED, function()
     if (IsInCampaign() or IsActiveWorldBattleground()) and not origSelf.leavingPvpZone then
       origSelf.leavingPvpZone = true
       origSelf:Hook(links, true)

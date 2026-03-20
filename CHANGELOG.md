@@ -4,6 +4,7 @@
 - And remove companion collectible as not allowed
 - Add PVP Zone and duel trigger
 - Rename to PairsWellWithCheese
+- Fix PVP zone and add Brazilian Portuguese
 
 ## 2026.03.19
 - Add trigger Swimming
