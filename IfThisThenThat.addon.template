@@ -21,6 +21,7 @@ lang/$(language).lua
 ## Outcomes
 outcomes/Outcomes.lua
 outcomes/Collectible.lua
+outcomes/CompanionCollectible.lua
 
 ## Triggers
 triggers/Triggers.lua

@@ -16,3 +16,4 @@ Currently supported effects:
 
 Deliberately unsupported triggers:
 - Fast travel - does not work with mementos (Finnvir's trinket being the one exception), and no other effect would really make sense
+- Fishing - the ESO Game API does not really support this

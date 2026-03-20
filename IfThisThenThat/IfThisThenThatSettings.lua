@@ -246,11 +246,15 @@ function IFTTT:BuildMenu()
       type = LAM.ST_SECTION,
       label = ""
     }
-    local collectibleItem = IFTTT.Outcomes.items.Collectible
-
+    for k, collectibleItem in pairs(IFTTT.Outcomes.items) do
+    if k ~= "CompanionCollectible" or (k == "CompanionCollectible" and IFTTT.Outcomes.items.CompanionCollectible.companionsUnlocked) then
+    panel:AddSetting {
+      type = LAM.ST_SECTION,
+      label = IFTTT.Lang[string.upper(k).."_HEADING"]
+    }
     panel:AddSetting({
       type = LAM.ST_DROPDOWN,
-      label = IFTTT.Lang.COLLECTIBLE_HEADING,
+      label = IFTTT.Lang.CATEGORY,
       items = collectibleItem.categories,
       getFunction = function() 
         return collectibleItem.selectedCategory.name or collectibleItem.categories[1].name or ""
@@ -261,14 +265,14 @@ function IFTTT:BuildMenu()
         if setting.m_container then
           control = setting.m_container:GetParent()
         end
-        RefreshSetting(self.subcategorySettings["Collectible"], control)
-        RefreshSetting(self.collectibleSettings["Collectible"], self.subcategorySettings["Collectible"].control, "effect")
+        RefreshSetting(self.subcategorySettings[k], control)
+        RefreshSetting(self.collectibleSettings[k], self.subcategorySettings[k].control, "effect")
       end,
     })
 
-    self.subcategorySettings["Collectible"] = panel:AddSetting {
+    self.subcategorySettings[k] = panel:AddSetting {
       type = LAM.ST_DROPDOWN,
-      label = IFTTT.Lang.COLLECTIBLE_HEADING,
+      label = IFTTT.Lang.SUBCATEGORY,
       items = function()
         return collectibleItem:GetSubcategoryNames()
       end,
@@ -284,12 +288,12 @@ function IFTTT:BuildMenu()
         if setting.m_container then
           control = setting.m_container:GetParent()
         end
-        RefreshSetting(self.collectibleSettings["Collectible"], control, "effect")
+        RefreshSetting(self.collectibleSettings[k], control, "effect")
       end,
     }
-    self.collectibleSettings["Collectible"] = panel:AddSetting {
+    self.collectibleSettings[k] = panel:AddSetting {
       type = LAM.ST_DROPDOWN,
-      label = IFTTT.Lang.COLLECTIBLE_HEADING,
+      label = IFTTT.Lang[string.upper(k).."_HEADING"],
       items = function()
         return collectibleItem:GetCollectibles()
       end,
@@ -305,6 +309,8 @@ function IFTTT:BuildMenu()
         self.outcomeSelected = selected
       end,
     }
+    end
+  end
     panel:AddSetting {
       type = LAM.ST_SECTION,
       label = IFTTT.Lang.COMMIT
