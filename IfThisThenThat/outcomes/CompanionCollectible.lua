@@ -14,7 +14,8 @@ CompanionCollectible.selected = {}
 CompanionCollectible.selections = {}
 CompanionCollectible.snapshot = {}
 CompanionCollectible.companionsUnlocked = false
-DM = ZO_COLLECTIBLE_DATA_MANAGER
+
+local companionCategoryType = 27
 
 local nonUsableCategories = {
   [1] = true, -- Stories
@@ -32,12 +33,15 @@ local nonUsableCategories = {
   [22] = true, -- Chapters
   [25] = true, -- House Banks
   [26] = true, -- Fragments
+  [27] = true, -- Companions
 }
 
-local nonUsableSubcategories = {
+local usableSubcategories = {
   [4] = { -- Appearance
-    [11] = true, -- Polymorphs
-    [12] = true, -- Skill styles
+    [7] = true, -- Costumes
+  },
+  [11] = { -- Mounts
+    [99] = true, -- All
   },
 }
 
@@ -63,7 +67,7 @@ function CompanionCollectible:GetSubcategoryNames()
     local partsCat = IFTTT.Split(parts[2], "_")
     for subcategoryIndex = 1, tonumber(partsCat[1]) do
         local subcategoryName, numCompanionCollectibles, unlockedCompanionCollectibles = GetCollectibleSubCategoryInfo(parts[1], subcategoryIndex)
-        if unlockedCompanionCollectibles > 0 and not ( nonUsableSubcategories[tonumber(parts[1])] and nonUsableSubcategories[tonumber(parts[1])][subcategoryIndex] )  then
+        if unlockedCompanionCollectibles > 0 and usableSubcategories[tonumber(parts[1])] and (usableSubcategories[tonumber(parts[1])][subcategoryIndex] or usableSubcategories[tonumber(parts[1])][99]) )  then
           table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(numCompanionCollectibles).."-subcategory"} )
         end
     end
@@ -104,7 +108,7 @@ function CompanionCollectible:GetCollectibles()
 end
 
 function CompanionCollectible:RefreshCategories()
-  self.companionsUnlocked = DM:HasAnyNewCompanionCollectibles()
+  self.companionsUnlocked =  HasAnyUnlockedCollectiblesByCategoryType(companionCategoryType)
   self.categories = self:GetCategoryNames()
   self.subcategories = self:GetSubcategoryNames()
   self.collectibles = self:GetCollectibles()
