@@ -4,15 +4,16 @@
 ; States and/or other countries. All rights reserved.
 ; You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
 
-## Title: IfThisThenThat
+## Title: PairsWellWithCheese
 ## Author: @Saranicole1980
-## Version: 0.0.1
+## Version: ${ADDON_VERSION}
 ## APIVersion: 101049 101050
-## AddOnVersion: 001
-## SavedVariables: IfThisThenThat_Vars
+## AddOnVersion: ${ADDON_FORMATTED_VERSION}
+## SavedVariables: PairsWellWithCheese_Vars
 ## DependsOn: LibHarvensAddonSettings>=20101
 
-IfThisThenThatGlobals.lua
+
+PairsWellWithCheeseGlobals.lua
 
 lang/en.lua
 lang/$(language).lua
@@ -31,5 +32,5 @@ triggers/Combat.lua
 triggers/Pvp.lua
 
 Links.lua
-IfThisThenThat.lua
-IfThisThenThatSettings.lua
+PairsWellWithCheese.lua
+PairsWellWithCheeseSettings.lua

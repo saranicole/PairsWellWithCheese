@@ -1,4 +1,4 @@
-local IFTTT = IFTTT
+local IFTTT = PairsWellWithCheese
 local EM = EVENT_MANAGER
 
 
@@ -73,8 +73,8 @@ local function OnAddOnLoaded(eventCode, addonName)
 	EVENT_MANAGER:UnregisterForEvent(IFTTT.Name, EVENT_ADD_ON_LOADED)
 	
 	local ns = GetDisplayName()..GetWorldName()
-	IFTTT.AV = ZO_SavedVars:NewAccountWide("IfThisThenThat_Vars", 1, ns, IFTTT.Default, ns)
-  IFTTT.CV = ZO_SavedVars:NewCharacterIdSettings("IfThisThenThat_Vars", 1, ns, IFTTT.Default, ns)
+	IFTTT.AV = ZO_SavedVars:NewAccountWide("PairsWellWithCheese_Vars", 1, ns, IFTTT.Default, ns)
+  IFTTT.CV = ZO_SavedVars:NewCharacterIdSettings("PairsWellWithCheese_Vars", 1, ns, IFTTT.Default, ns)
   IFTTT.Triggers:Initialize(IFTTT)
   IFTTT.Outcomes:Initialize(IFTTT)
   IFTTT.Links:Initialize(IFTTT)

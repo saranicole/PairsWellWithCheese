@@ -1,4 +1,4 @@
-local IFTTT = IFTTT
+local IFTTT = PairsWellWithCheese
 
 local Triggers = IFTTT.Triggers
 local Combat = Triggers.items.Combat

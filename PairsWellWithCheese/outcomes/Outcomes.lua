@@ -1,4 +1,4 @@
-local IFTTT = IFTTT
+local IFTTT = PairsWellWithCheese
 
 local Outcomes = IFTTT.Outcomes or ZO_DeferredInitializingObject:Subclass()
 Outcomes.items = {

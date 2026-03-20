@@ -1,4 +1,4 @@
-local IFTTT = IFTTT
+local IFTTT = PairsWellWithCheese
 
 local Triggers = IFTTT.Triggers or ZO_DeferredInitializingObject:Subclass()
 Triggers.items = {
