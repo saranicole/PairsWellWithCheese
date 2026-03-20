@@ -67,7 +67,7 @@ function CompanionCollectible:GetSubcategoryNames()
     local partsCat = IFTTT.Split(parts[2], "_")
     for subcategoryIndex = 1, tonumber(partsCat[1]) do
         local subcategoryName, numCompanionCollectibles, unlockedCompanionCollectibles = GetCollectibleSubCategoryInfo(parts[1], subcategoryIndex)
-        if unlockedCompanionCollectibles > 0 and usableSubcategories[tonumber(parts[1])] and (usableSubcategories[tonumber(parts[1])][subcategoryIndex] or usableSubcategories[tonumber(parts[1])][99]) )  then
+        if unlockedCompanionCollectibles > 0 and usableSubcategories[tonumber(parts[1])] and (usableSubcategories[tonumber(parts[1])][subcategoryIndex] or usableSubcategories[tonumber(parts[1])][99])  then
           table.insert(self.subcategories, {name=subcategoryName, data=tostring(subcategoryIndex).."-"..tostring(numCompanionCollectibles).."-subcategory"} )
         end
     end
