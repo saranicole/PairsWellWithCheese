@@ -1,4 +1,4 @@
-local IFTTT = IFTTT
+local IFTTT = PairsWellWithCheese
 
 IFTTT.Lang = {
   TRIGGER_HEADING = "Déclencheurs",

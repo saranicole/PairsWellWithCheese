@@ -1,10 +1,10 @@
 --Name Space
-local IfThisThenThat = {}
+PairsWellWithCheese = {}
 
-IFTTT = IfThisThenThat
+local IFTTT = PairsWellWithCheese
 
 --Basic Info
-IFTTT.Name = "IfThisThenThat"
+IFTTT.Name = "PairsWellWithCheese"
 
 local EM = EVENT_MANAGER
 

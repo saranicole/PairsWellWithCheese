@@ -1,4 +1,4 @@
-local IFTTT = IFTTT
+local IFTTT = PairsWellWithCheese
 
 local Outcomes = IFTTT.Outcomes
 local Collectible = Outcomes.items.Collectible
@@ -103,7 +103,6 @@ end
 
 function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
   local category, subcategory =  GetCategoryInfoFromCollectibleId(desiredCollectibleId)
-  d("in poll usable")
   local isPolymorph = (category == 4 and subcategory == 11)
   -- Switch on or off desired
   if (toggleOn or activeCollectible == 0 or isPolymorph) and IsCollectibleUsable(desiredCollectibleId) and IsCollectibleValidForPlayer(desiredCollectibleId) then

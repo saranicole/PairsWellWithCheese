@@ -1,6 +1,6 @@
-#  IfThisThenThat
+#  PairsWellWithCheese
 
-IfThisThenThat lets users select a trigger that will cause an effect.
+PairsWellWithCheese lets users select a trigger that will cause an effect.
 
 Think "if I mount my sorrel horse, my piebald cat appears!"
 

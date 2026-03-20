@@ -3,6 +3,7 @@
 - Add Companion Collectible as outcome
 - And remove companion collectible as not allowed
 - Add PVP Zone and duel trigger
+- Rename to PairsWellWithCheese
 
 ## 2026.03.19
 - Add trigger Swimming

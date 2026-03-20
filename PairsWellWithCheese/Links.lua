@@ -1,4 +1,4 @@
-local IFTTT = IFTTT
+local IFTTT = PairsWellWithCheese
 
 local Links = IFTTT.Links or ZO_DeferredInitializingObject:Subclass()
 
