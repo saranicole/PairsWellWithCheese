@@ -95,7 +95,7 @@ function Combat:callbacks(links)
   EM:UnregisterForEvent(IFTTT.Name.."CombatTargetCallback", EVENT_TARGET_CHANGED)
   EM:UnregisterForEvent(IFTTT.Name.."CombatCallback", EVENT_PLAYER_COMBAT_STATE)
   EM:RegisterForEvent(IFTTT.Name.."CombatTargetCallback", EVENT_TARGET_CHANGED, function(_, unitTag)
-    if IsUnitInCombat("player") then
+    if IsUnitInCombat("player") and not (IsInCampaign() or IsActiveWorldBattleground()) then
       origSelf:Hook(links, true, unitTag)
       EM:RegisterForEvent(IFTTT.Name.."CombatCallback", EVENT_PLAYER_COMBAT_STATE, function(_, incombat)
         if not incombat then

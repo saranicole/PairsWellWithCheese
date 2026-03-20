@@ -7,6 +7,7 @@ Triggers.items = {
   TriggerMounts = {},
   Swimming = {},
   Combat = {},
+  Pvp = {},
 }
 
 function Triggers:Initialize(parent)

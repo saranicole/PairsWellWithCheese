@@ -11,6 +11,7 @@ IFTTT.Lang = {
   SKILLS_HEADING = "Skills",
   SWIMMING_HEADING = "Swimming",
   COMBAT_HEADING = "Combat",
+  PVP_HEADING = "Player vs Player",
   ADD_LINK       = "Add Link for Character",
   ADD            = "Character Add",
   ADD_TOOLTIP    = "Add a link specific to this character that will trigger the effect from the action",
@@ -44,5 +45,6 @@ IFTTT.Lang = {
   COMBAT         = "Combat",
   ANY_COMBAT     = "Combat - any enemy",
   ANY_BOSS_COMBAT = "Combat - any boss",
---   PVP_COMBAT     = "Combat - player vs player",
+  PVP_ZONE       = "Player vs player zone",
+  DUEL_ACCEPT    = "Duel Invite Acceptance",
 }

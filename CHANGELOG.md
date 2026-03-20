@@ -2,6 +2,7 @@
 - Add deliberate exclusion of Fishing
 - Add Companion Collectible as outcome
 - And remove companion collectible as not allowed
+- Add PVP Zone and duel trigger
 
 ## 2026.03.19
 - Add trigger Swimming

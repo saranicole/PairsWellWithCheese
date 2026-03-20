@@ -103,6 +103,7 @@ end
 
 function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
   local category, subcategory =  GetCategoryInfoFromCollectibleId(desiredCollectibleId)
+  d("in poll usable")
   local isPolymorph = (category == 4 and subcategory == 11)
   -- Switch on or off desired
   if (toggleOn or activeCollectible == 0 or isPolymorph) and IsCollectibleUsable(desiredCollectibleId) and IsCollectibleValidForPlayer(desiredCollectibleId) then

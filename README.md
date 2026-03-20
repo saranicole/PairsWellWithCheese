@@ -9,7 +9,11 @@ Currently supported triggers:
 - Collectibles (note not all collectible types are supported!)
 - Mounts
 - Swimming
-- Combat - either any combat at all or any combat involving a boss (world boss level or higher)
+- **Combat - either any combat at all or any combat involving a boss (world boss level or higher)
+- Entering a PVP Zone
+- Accepting a duel invitation
+
+**Excludes PVP combat
 
 Currently supported effects:
 - Collectibles (ditto above!)
