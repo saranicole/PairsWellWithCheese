@@ -211,9 +211,11 @@ function IFTTT:BuildMenu()
       label = IFTTT.Lang.SELECT_TRIGGER,
       buttonText = IFTTT.Lang.SELECT_TRIGGER,
       clickHandler = function(control)
-        self.commitTrigger = self.triggerSelected
-        local dataParts = self.Split(self.triggerSelected.data)
-        panel:UpdateControls()
+        if self.triggerSelected then
+          self.commitTrigger = self.triggerSelected
+          local dataParts = self.Split(self.triggerSelected.data)
+          panel:UpdateControls()
+        end
       end
     })
     panel:AddSetting({

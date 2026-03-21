@@ -69,31 +69,31 @@ function TriggerMounts:callbacks(links)
   EM:UnregisterForEvent(IFTTT.Name.."TriggerMountCallback", EVENT_MOUNTED_STATE_CHANGED)
   EM:RegisterForEvent(IFTTT.Name.."TriggerMountCallback", EVENT_MOUNTED_STATE_CHANGED, function(_, mounted) 
     local callbackTable = {}
+    local slotKey = "placeholder"
     for key, link in pairs(links) do
-      callbackTable = {}
       local triggerparts = IFTTT.Split(link.trigger.data)
       local outcomeparts = IFTTT.Split(link.outcome.data)
       local desiredCollectibleId = tonumber(triggerparts[1])
-      local type = IFTTT.toCapitalized(outcomeparts[3])
+      local categoryParts = IFTTT.Split(outcomeparts[2], "_")
+      local category = tonumber(categoryParts[1])
       link.trigger.active = link.trigger.active or {}
-      if IsCollectibleActive(desiredCollectibleId) or self.snapshot == desiredCollectibleId then
-        local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
+      slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
+      if IsCollectibleActive(desiredCollectibleId) then
         if not mounted then
           self.snapshot = {}
-        else
-          self.snapshot = desiredCollectibleId
         end
-        callbackTable[type] = callbackTable[type] or {}
-        table.insert(callbackTable[type], link.outcome)
-        for k, obj in pairs(callbackTable) do
-          zo_callLater(function()
-            IFTTT.Outcomes.items[k]:DoOutcome(obj, mounted, self.categoryLock[mountCategory])
-            if not self.categoryLock[mountCategory] then
-              self.categoryLock[mountCategory] = true
-            end
-          end, 1000)
-        end
+        table.insert(callbackTable,{ type = IFTTT.toCapitalized(outcomeparts[3]), link = link.outcome})
       end
+    end
+    for k, obj in ipairs(callbackTable) do -- obj is only getting one
+      zo_callLater(function()
+        if self.categoryLock then
+          IFTTT.Outcomes.items[obj.type]:DoOutcome(obj.link, mounted, self.categoryLock[slotKey])
+          if not self.categoryLock[slotKey] then
+            self.categoryLock[slotKey] = true
+          end
+        end
+      end, 1000)
     end
   end)
 end
