@@ -1,3 +1,6 @@
+## 2026.03.21
+- Fixes for multi trigger
+
 ## 2026.03.20
 - Add deliberate exclusion of Fishing
 - Add Companion Collectible as outcome
