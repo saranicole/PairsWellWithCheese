@@ -79,20 +79,12 @@ function TriggerMounts:callbacks(links)
       link.trigger.active = link.trigger.active or {}
       slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
       if IsCollectibleActive(desiredCollectibleId) then
-        if not mounted then
-          self.snapshot = {}
-        end
         table.insert(callbackTable,{ type = IFTTT.toCapitalized(outcomeparts[3]), link = link.outcome})
       end
     end
     for k, obj in ipairs(callbackTable) do -- obj is only getting one
       zo_callLater(function()
-        if self.categoryLock then
-          IFTTT.Outcomes.items[obj.type]:DoOutcome(obj.link, mounted, self.categoryLock[slotKey])
-          if not self.categoryLock[slotKey] then
-            self.categoryLock[slotKey] = true
-          end
-        end
+        IFTTT.Outcomes.items[obj.type]:DoOutcome({obj.link}, mounted, false)
       end, 1000)
     end
   end)

@@ -139,10 +139,7 @@ function Collectible:DoOutcome(outcome, toggleOn, categoryLock)
     local outcomeparts = IFTTT.Split(outcome[i].data)
     local categoryparts = IFTTT.Split(outcomeparts[2], "_")
     local desiredCollectibleId = tonumber(outcomeparts[1])
-    local categoryId = tonumber(categoryparts[2])
-    if not categoryId or categoryId == 0 then
-      categoryId = tonumber(categoryparts[1])
-    end
+    local categoryId = GetCollectibleCategoryType(desiredCollectibleId)
     if toggleOn then
       local activeCollectible = GetActiveCollectibleByType(categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
       if activeCollectible ~= desiredCollectibleId and not categoryLock then

@@ -54,13 +54,13 @@ function Swimming:HookSwim(links)
     link.trigger.active = link.trigger.active or {}
     if activeCollectibleId == 0 or not IsCollectibleActive(desiredCollectibleId) then
       local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
-      self.snapshot = desiredCollectibleId
+      local categoryId = GetCollectibleCategoryType(desiredCollectibleId)
       callbackTable[type] = callbackTable[type] or {}
       table.insert(callbackTable[type], link.outcome)
       for k, obj in pairs(callbackTable) do
-        IFTTT.Outcomes.items[k]:DoOutcome(obj, true, self.categoryLock[lockKey])
-        if not self.categoryLock[lockKey] then
-          self.categoryLock[lockKey] = true
+        IFTTT.Outcomes.items[k]:DoOutcome(obj, true, self.categoryLock[categoryId])
+        if not self.categoryLock[categoryId] then
+          self.categoryLock[categoryId] = true
         end
       end
     end

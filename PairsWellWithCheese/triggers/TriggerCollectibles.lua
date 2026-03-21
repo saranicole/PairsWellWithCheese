@@ -115,30 +115,38 @@ end
 
 function TriggerCollectibles:callbacks(links)
   EM:UnregisterForEvent(IFTTT.Name.."TriggerCollectibleCallback", EVENT_COLLECTIBLE_UPDATED)
-  EM:RegisterForEvent(IFTTT.Name.."TriggerCollectibleCallback", EVENT_COLLECTIBLE_UPDATED, function(_, collectibleId) 
-    local callbackTable = {}
-    for key, link in pairs(links) do
-      callbackTable = {}
-      local triggerparts = IFTTT.Split(link.trigger.data)
-      local outcomeparts = IFTTT.Split(link.outcome.data)
-      local desiredCollectibleId = tonumber(triggerparts[1])
-      local type = IFTTT.toCapitalized(outcomeparts[3])
-      link.trigger.active = link.trigger.active or {}
-      if collectibleId == tonumber(desiredCollectibleId) then
-        local category, subcategory =  GetCategoryInfoFromCollectibleId(collectibleId)
-        local toggleOn = IsCollectibleActive(collectibleId)
-        local slotKey = triggerparts[1].."-"..triggerparts[2].."-"..outcomeparts[1]
-        callbackTable[type] = callbackTable[type] or {}
-        table.insert(callbackTable[type], link.outcome)
-        for k, obj in pairs(callbackTable) do
-          zo_callLater(function()
-            IFTTT.Outcomes.items[k]:DoOutcome(obj, toggleOn, self.categoryLock[category])
-            if not self.categoryLock[category] then
-              self.categoryLock[category] = true
-            end
-          end, 1500)
+  
+    EM:RegisterForEvent(IFTTT.Name.."TriggerCollectibleCallback", EVENT_COLLECTIBLE_UPDATED, function(_, collectibleId) 
+      local callbackTable = {}
+      self.categoryLock = {}
+      local slotKey = "placeholder"
+      local toggleOn = false
+      zo_callLater(function()
+        for key, link in pairs(links) do
+          local triggerparts = IFTTT.Split(link.trigger.data)
+          local outcomeparts = IFTTT.Split(link.outcome.data)
+          local categoryParts = IFTTT.Split(outcomeparts[2], "_")
+          local desiredCollectibleId = tonumber(triggerparts[1])
+          local type = IFTTT.toCapitalized(outcomeparts[3])
+          link.trigger.active = link.trigger.active or {}
+          toggleOn = IsCollectibleActive(desiredCollectibleId)
+          local categoryType = GetCollectibleCategoryType(tonumber(outcomeparts[1]))
+          if collectibleId == tonumber(desiredCollectibleId) then
+            table.insert(callbackTable, { type = IFTTT.toCapitalized(outcomeparts[3]), link = link.outcome, categoryId = categoryType, categoryIdBackup = tonumber(categoryParts[1]), desiredCollectibleId = desiredCollectibleId})
+          end
         end
-      end
-    end
-  end)
+        for k, obj in pairs(callbackTable) do
+            zo_callLater(function()
+              if toggleOn then
+                local activeCollectible = GetActiveCollectibleByType(obj.categoryId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
+                if activeCollectible ~= obj.desiredCollectibleId then
+                  local categoryId = obj.categoryId
+                  IFTTT.Outcomes.items[obj.type].snapshot[categoryId] = activeCollectible
+                end
+              end
+              IFTTT.Outcomes.items[obj.type]:DoOutcome({obj.link}, toggleOn, true)
+            end, 500)
+        end
+      end, 5000)
+    end)
 end
