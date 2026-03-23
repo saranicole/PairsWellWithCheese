@@ -1,3 +1,6 @@
+## 2026.03.23
+- Removed Combat trigger since unreliable
+
 ## 2026.03.21
 - Fixes for multi trigger
 

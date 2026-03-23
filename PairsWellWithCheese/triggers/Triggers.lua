@@ -6,7 +6,6 @@ Triggers.items = {
   TriggerCollectibles = {},
   TriggerMounts = {},
   Swimming = {},
-  Combat = {},
   Pvp = {},
 }
 

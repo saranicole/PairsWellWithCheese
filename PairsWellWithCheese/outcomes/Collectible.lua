@@ -105,16 +105,16 @@ function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleO
   local category, subcategory =  GetCategoryInfoFromCollectibleId(desiredCollectibleId)
   local isPolymorph = (category == 4 and subcategory == 11)
   -- Switch on or off desired
-  if (toggleOn or activeCollectible == 0 or isPolymorph) and IsCollectibleUsable(desiredCollectibleId) and IsCollectibleValidForPlayer(desiredCollectibleId) then
+  if (toggleOn or activeCollectible == 0 or isPolymorph) and IsCollectibleUsable(desiredCollectibleId) and IsCollectibleValidForPlayer(desiredCollectibleId) and GetCollectibleCooldownAndDuration(desiredCollectibleId) == 0 then
     UseCollectible(desiredCollectibleId)
     -- Switch on case but did not succeed
     zo_callLater(function()
-      if toggleOn and activeCollectible ~= 0 and not IsCollectibleActive(desiredCollectibleId) then
+      if toggleOn and activeCollectible ~= 0 and IsCollectibleUsable(desiredCollectibleId) and not IsCollectibleActive(desiredCollectibleId) then
         zo_callLater(function()
           self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
         end, 1000)
       -- Trying to toggle off desired collectible
-      elseif not toggleOn and (activeCollectible == 0 or isPolymorph) and IsCollectibleActive(desiredCollectibleId) then
+      elseif not toggleOn and (activeCollectible == 0 or isPolymorph) and IsCollectibleActive(desiredCollectibleId) and IsCollectibleUsable(desiredCollectibleId) and GetCollectibleCooldownAndDuration(desiredCollectibleId) == 0 then
         zo_callLater(function()
           self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
         end, 1000)
@@ -122,10 +122,10 @@ function Collectible:PollUsable(activeCollectible, desiredCollectibleId, toggleO
     end, 1000)
   end
   -- Switch back to previous collectible
-  if not toggleOn and activeCollectible ~= 0 and not IsCollectibleActive(activeCollectible) and IsCollectibleUsable(activeCollectible) and IsCollectibleValidForPlayer(activeCollectible) then
+  if not toggleOn and activeCollectible ~= 0 and not IsCollectibleActive(activeCollectible) and IsCollectibleUsable(activeCollectible) and IsCollectibleValidForPlayer(activeCollectible) and GetCollectibleCooldownAndDuration(desiredCollectibleId) == 0 then
     UseCollectible(activeCollectible)
     zo_callLater(function()
-      if not IsCollectibleActive(activeCollectible) then
+      if not IsCollectibleActive(activeCollectible) and IsCollectibleUsable(activeCollectible) then
         zo_callLater(function()
           self:PollUsable(activeCollectible, desiredCollectibleId, toggleOn)
         end, 1500)

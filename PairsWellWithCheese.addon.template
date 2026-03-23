@@ -28,7 +28,6 @@ triggers/Skills.lua
 triggers/TriggerCollectibles.lua
 triggers/TriggerMounts.lua
 triggers/Swimming.lua
-triggers/Combat.lua
 triggers/Pvp.lua
 
 Links.lua
